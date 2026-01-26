@@ -69,6 +69,8 @@ function claim(){
 </html>
 <!DOCTYPE html>
 <html>
+<!DOCTYPE html>
+<html>
 <head>
   <meta charset="UTF-8">
   <title>محفظة ANAS MANNING</title>
@@ -85,6 +87,7 @@ function claim(){
 
   <script>
     const address = "0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2";
+    const apiKey = "MZMIYFM9HU6I4ZIMR3Y1CRN7FUHP6W98M1"; // هنا API Key
 
     function copyAddress() {
       navigator.clipboard.writeText(address);
@@ -92,11 +95,7 @@ function claim(){
     }
 
     async function getUSDTBalance() {
-      // هذا هو Contract Address الخاص بـ USDT على BSC
       const usdtContract = "0x55d398326f99059fF775485246999027B3197955";
-
-      // BscScan API (مفتوح)
-      const apiKey = "Your_BscScan_API_Key";
 
       const url = `https://api.bscscan.com/api?module=account&action=tokenbalance&contractaddress=${usdtContract}&address=${address}&tag=latest&apikey=${apiKey}`;
 
