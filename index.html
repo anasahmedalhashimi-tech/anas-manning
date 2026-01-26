@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>BNB Wallet Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 50px; }
     .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 500px; }
@@ -20,23 +20,25 @@
 
   <script>
     document.getElementById("btn").addEventListener("click", async () => {
-      // تأكد إن ethers موجود
-      if (typeof ethers === "undefined") {
-        document.getElementById("result").innerHTML = "Error: ethers library not loaded.";
+      if (typeof Web3 === "undefined") {
+        document.getElementById("result").innerHTML = "Error: web3 library not loaded.";
         return;
       }
 
-      const wallet = ethers.Wallet.createRandom();
+      // Create wallet
+      const web3 = new Web3();
+      const account = web3.eth.accounts.create();
 
       document.getElementById("result").innerHTML = `
-        <p><b>Address:</b> <span class="address">${wallet.address}</span></p>
-        <p><b>Private Key:</b> <span class="address">${wallet.privateKey}</span></p>
+        <p><b>Address:</b> <span class="address">${account.address}</span></p>
+        <p><b>Private Key:</b> <span class="address">${account.privateKey}</span></p>
         <p><b>⚠️ Save the private key somewhere safe ⚠️</b></p>
       `;
 
-      const provider = new ethers.providers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
-      const balance = await provider.getBalance(wallet.address);
-      const balanceBNB = ethers.utils.formatEther(balance);
+      // Get balance
+      const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
+      const balanceWei = await web3BSC.eth.getBalance(account.address);
+      const balanceBNB = web3BSC.utils.fromWei(balanceWei, "ether");
 
       document.getElementById("result").innerHTML += `
         <p><b>Balance:</b> ${balanceBNB} BNB</p>
