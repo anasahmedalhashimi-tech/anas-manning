@@ -1,3 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>ANAS MANNING</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0b0b0b;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+  }
+  .box {
+    max-width: 600px;
+    margin: auto;
+    border: 1px solid #333;
+    padding: 20px;
+    border-radius: 12px;
+  }
+  button {
+    padding: 15px 25px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    background: #00ff99;
+    color: #000;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h1>ANAS MANNING</h1>
+  <p>موقع كانل ميمكوين بسيط</p>
+
+  <h2>⛏️ احصل على نقاط</h2>
+  <p>كل ساعة تقدر تضغط وتاخذ نقاط</p>
+
+  <h2>رصيدك: <span id="balance">0</span> نقطة</h2>
+
+  <button onclick="claim()">احصل الآن</button>
+  <p id="msg"></p>
+</div>
+
+<script>
+let balance = 0;
+let last = 0;
+
+function claim(){
+  const now = Date.now();
+  const cooldown = 3600000; // كل ساعة
+  if(now - last < cooldown){
+    const remain = Math.ceil((cooldown - (now - last)) / 60000);
+    document.getElementById("msg").innerText = "جرب بعد " + remain + " دقيقة";
+    return;
+  }
+  const reward = Math.floor(Math.random() * 10) + 1;
+  balance += reward;
+  document.getElementById("balance").innerText = balance;
+  last = now;
+  document.getElementById("msg").innerText = "تم إضافة " + reward + " نقطة";
+}
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<!DOCTYPE html>
+<html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>محفظة ANAS MANNING</title>
+</head>
+<body>
+  <h2>محفظة ANAS MANNING</h2>
+
+  <p>العنوان: <b id="address">0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2</b></p>
+
+  <h3>رصيد USDT (BSC)</h3>
+  <p id="balance">جاري التحميل...</p>
+
+  <button onclick="copyAddress()">نسخ العنوان</button>
+
+  <script>
+    const address = "0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2";
+    const apiKey = "MZMIYFM9HU6I4ZIMR3Y1CRN7FUHP6W98M1";
+
+    function copyAddress() {
+      navigator.clipboard.writeText(address);
+      alert("تم نسخ العنوان");
+    }
+
+    async function getUSDTBalance() {
+      const usdtContract = "0x55d398326f99059fF775485246999027B3197955";
+      const url = `https://api.bscscan.com/api?module=account&action=tokenbalance&contractaddress=${usdtContract}&address=${address}&tag=latest&apikey=${apiKey}`;
+
+      // Proxy لتجاوز CORS
+      const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+
+      const res = await fetch(proxyUrl);
+      const data = await res.json();
+
+      if (data.status === "1") {
+        const balance = Number(data.result) / 1e18;
+        document.getElementById("balance").innerText = balance + " USDT";
+      } else {
+        document.getElementById("balance").innerText = "خطأ في قراءة الرصيد";
+      }
+    }
+
+    getUSDTBalance();
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ANAS MANNING - BSC Balance</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b0b0b;
+      color: #fff;
+      text-align: center;
+      padding-top: 50px;
+    }
+    .balance {
+      font-size: 40px;
+      color: #ffd700;
+    }
+  </style>
+</head>
+<body>
+  <h1>ANAS MANNING</h1>
+  <div class="balance" id="balance">Loading...</div>
+
+  <script>
+    const address = "0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2";
+    const apiKey = "MZMIYFM9HU6I4ZIMR3Y1CRN7FUHP6W98M1";
+
+    async function getBalance() {
+      try {
+        const response = await fetch(`https://api.bscscan.com/api?module=account&action=balance&address=${address}&tag=latest&apikey=${apiKey}`);
+        const data = await response.json();
+
+        if (data.status === "1") {
+          const balanceWei = data.result;
+          const balanceBNB = balanceWei / 1e18;
+          document.getElementById("balance").innerText = balanceBNB + " BNB";
+        } else {
+          document.getElementById("balance").innerText = "Error: " + data.message;
+        }
+      } catch (error) {
+        document.getElementById("balance").innerText = "Error loading balance";
+      }
+    }
+
+    getBalance();
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test</title>
+  <style>
+    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 50px; }
+  </style>
+</head>
+<body>
+  <h1>Test Page</h1>
+  <div id="output">Loading...</div>
+
+  <script>
+    document.getElementById("output").innerText = "JS Works!";
   </script>
 </body>
 </html>
