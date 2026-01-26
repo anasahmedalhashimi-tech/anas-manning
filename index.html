@@ -1,7 +1,11 @@
+  </script>
+</body>
+</html>
 <!DOCTYPE html>
 <html>
 <head>
-  <title>BNB Wallet Generator</title>
+  <title>Wallet Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <style>
     body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 50px; }
     .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 500px; }
@@ -13,31 +17,31 @@
   <h1>BNB Wallet Generator</h1>
 
   <div class="box">
-    <button id="btn">Create Wallet</button>
+    <button onclick="createWallet()">Create Wallet</button>
     <div id="result"></div>
   </div>
 
   <script>
-    // تحويل bytes إلى hex
-    function toHex(bytes) {
-      return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
-    }
+    async function createWallet() {
+      // Create wallet
+      const wallet = ethers.Wallet.createRandom();
 
-    document.getElementById("btn").addEventListener("click", () => {
-      // إنشاء مفتاح عشوائي 32 بايت (Private Key)
-      const privateKeyBytes = crypto.getRandomValues(new Uint8Array(32));
-      const privateKeyHex = '0x' + toHex(privateKeyBytes);
-
-      // Address (غير حقيقي تماماً لكن شكله مثل العنوان)
-      // لأن إنشاء address الحقيقي يحتاج حساب ECDSA (صعب بدون مكتبة)
-      const fakeAddress = '0x' + toHex(crypto.getRandomValues(new Uint8Array(20)));
-
+      // Show address & private key
       document.getElementById("result").innerHTML = `
-        <p><b>Address (fake):</b> <span class="address">${fakeAddress}</span></p>
-        <p><b>Private Key:</b> <span class="address">${privateKeyHex}</span></p>
-        <p><b>⚠️ هذا العنوان غير حقيقي ولا يشتغل على BSC ⚠️</b></p>
+        <p><b>Address:</b> <span class="address">${wallet.address}</span></p>
+        <p><b>Private Key:</b> <span class="address">${wallet.privateKey}</span></p>
+        <p><b>⚠️ Save the private key somewhere safe ⚠️</b></p>
       `;
-    });
+
+      // Show balance
+      const provider = new ethers.providers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
+      const balance = await provider.getBalance(wallet.address);
+      const balanceBNB = ethers.utils.formatEther(balance);
+
+      document.getElementById("result").innerHTML += `
+        <p><b>Balance:</b> ${balanceBNB} BNB</p>
+      `;
+    }
   </script>
 </body>
-</html>
+</html
