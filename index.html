@@ -67,34 +67,51 @@ function claim(){
 
 </body>
 </html>
-<hr>
-<h3>💰 إرسال USDT (BSC) إلى محفظتي</h3>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>محفظة ANAS MANNING</title>
+</head>
+<body>
+  <h2>محفظة ANAS MANNING</h2>
 
-<p>العنوان: <b id="addr">0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2</b></p>
+  <p>العنوان: <b id="address">0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2</b></p>
 
-<button onclick="copyAddress()">نسخ العنوان</button>
-<button onclick="openTrust()">فتح Trust Wallet</button>
+  <h3>رصيد USDT (BSC)</h3>
+  <p id="balance">جاري التحميل...</p>
 
-<div id="qr"></div>
+  <button onclick="copyAddress()">نسخ العنوان</button>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
-function copyAddress() {
-  const addr = document.getElementById("addr").innerText;
-  navigator.clipboard.writeText(addr);
-  alert("تم نسخ العنوان");
-}
+  <script>
+    const address = "0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2";
 
-function openTrust() {
-  const addr = document.getElementById("addr").innerText;
-  const url = `https://link.trustwallet.com/send?address=${addr}&asset=USDT`;
-  window.open(url, "_blank");
-}
+    function copyAddress() {
+      navigator.clipboard.writeText(address);
+      alert("تم نسخ العنوان");
+    }
 
-// QR Code
-new QRCode(document.getElementById("qr"), {
-  text: document.getElementById("addr").innerText,
-  width: 200,
-  height: 200
-});
-</script>
+    async function getUSDTBalance() {
+      // هذا هو Contract Address الخاص بـ USDT على BSC
+      const usdtContract = "0x55d398326f99059fF775485246999027B3197955";
+
+      // BscScan API (مفتوح)
+      const apiKey = "Your_BscScan_API_Key";
+
+      const url = `https://api.bscscan.com/api?module=account&action=tokenbalance&contractaddress=${usdtContract}&address=${address}&tag=latest&apikey=${apiKey}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.status === "1") {
+        const balance = Number(data.result) / 1e18;
+        document.getElementById("balance").innerText = balance + " USDT";
+      } else {
+        document.getElementById("balance").innerText = "خطأ في قراءة الرصيد";
+      }
+    }
+
+    getUSDTBalance();
+  </script>
+</body>
+</html>
