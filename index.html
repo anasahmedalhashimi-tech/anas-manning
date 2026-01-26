@@ -70,24 +70,23 @@ function claim(){
 <hr>
 <h3>💰 إرسال USDT (BSC) إلى محفظتي</h3>
 
-<p>العنوان: <b>0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2</b></p>
+<p>العنوان: <b id="addr">0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2</b></p>
 
-<button onclick="openTrust()">إرسال USDT</button>
+<button onclick="copyAddress()">نسخ العنوان</button>
 
 <div id="qr"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-function openTrust() {
-  // رابط يفتح Trust Wallet مباشرة مع USDT على BSC
-  const address = "0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2";
-  const uri = `trust://wallet/send?coin=USDT&address=${address}&chain=bsc`;
-  window.location.href = uri;
+function copyAddress() {
+  const addr = document.getElementById("addr").innerText;
+  navigator.clipboard.writeText(addr);
+  alert("تم نسخ العنوان");
 }
 
-// إنشاء QR Code
+// QR Code
 new QRCode(document.getElementById("qr"), {
-  text: "0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2",
+  text: document.getElementById("addr").innerText,
   width: 200,
   height: 200
 });
