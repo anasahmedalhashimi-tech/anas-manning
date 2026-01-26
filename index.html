@@ -1,92 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My BNB Wallet</title>
-  <script src="ethers.min.js"></script>
+  <title>BNB Wallet Generator</title>
   <style>
-    body { font-family: Arial; background: #000; color: #fff; text-align: center; }
-    .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 600px; }
+    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 50px; }
+    .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 500px; }
     .address { color: #ffd700; word-break: break-all; }
-    input { padding: 10px; margin: 5px; width: 80%; }
-    button { padding: 10px 20px; margin: 10px; }
   </style>
 </head>
 <body>
 
-  <h1>My BNB Wallet</h1>
+  <h1>BNB Wallet Generator</h1>
 
   <div class="box">
-    <button id="create">Create Wallet</button>
-    <button id="load">Load Wallet</button>
-    <div id="info"></div>
-  </div>
-
-  <div class="box">
-    <h3>Send BNB</h3>
-    <input id="to" placeholder="Recipient Address" />
-    <input id="amount" placeholder="Amount in BNB" />
-    <button id="send">Send</button>
-    <div id="sendResult"></div>
-  </div>
-
-  <div class="box">
-    <h3>BNB Price Chart</h3>
-    <div id="chart"></div>
+    <button id="btn">Create Wallet</button>
+    <div id="result"></div>
   </div>
 
   <script>
-    let wallet, provider;
+    // تحويل bytes إلى hex
+    function toHex(bytes) {
+      return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+    }
 
-    // Create wallet
-    document.getElementById("create").onclick = () => {
-      wallet = ethers.Wallet.createRandom();
-      localStorage.setItem("pk", wallet.privateKey);
-      showWallet();
-    };
+    document.getElementById("btn").addEventListener("click", () => {
+      // إنشاء مفتاح عشوائي 32 بايت (Private Key)
+      const privateKeyBytes = crypto.getRandomValues(new Uint8Array(32));
+      const privateKeyHex = '0x' + toHex(privateKeyBytes);
 
-    // Load wallet from local storage
-    document.getElementById("load").onclick = () => {
-      const pk = localStorage.getItem("pk");
-      if (!pk) return alert("No wallet saved. Create one first.");
-      wallet = new ethers.Wallet(pk);
-      showWallet();
-    };
+      // Address (غير حقيقي تماماً لكن شكله مثل العنوان)
+      // لأن إنشاء address الحقيقي يحتاج حساب ECDSA (صعب بدون مكتبة)
+      const fakeAddress = '0x' + toHex(crypto.getRandomValues(new Uint8Array(20)));
 
-    async function showWallet() {
-      provider = new ethers.providers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
-      const balance = await provider.getBalance(wallet.address);
-      const balanceBNB = ethers.utils.formatEther(balance);
-
-      document.getElementById("info").innerHTML = `
-        <p>Address: <span class="address">${wallet.address}</span></p>
-        <p>Balance: ${balanceBNB} BNB</p>
-        <p>Private Key (save it): <span class="address">${wallet.privateKey}</span></p>
+      document.getElementById("result").innerHTML = `
+        <p><b>Address (fake):</b> <span class="address">${fakeAddress}</span></p>
+        <p><b>Private Key:</b> <span class="address">${privateKeyHex}</span></p>
+        <p><b>⚠️ هذا العنوان غير حقيقي ولا يشتغل على BSC ⚠️</b></p>
       `;
-    }
-
-    // Send BNB
-    document.getElementById("send").onclick = async () => {
-      if (!wallet) return alert("Load wallet first");
-      const to = document.getElementById("to").value;
-      const amount = document.getElementById("amount").value;
-      const tx = {
-        to,
-        value: ethers.utils.parseEther(amount),
-        gasLimit: 21000
-      };
-      const signedTx = await wallet.signTransaction(tx);
-      const sent = await provider.sendTransaction(signedTx);
-      document.getElementById("sendResult").innerHTML = "Tx Hash: " + sent.hash;
-    };
-
-    // Chart
-    async function loadChart() {
-      const res = await fetch("https://api.coingecko.com/api/v3/coins/binancecoin/market_chart?vs_currency=usd&days=7");
-      const data = await res.json();
-      const prices = data.prices.slice(-10);
-      document.getElementById("chart").innerHTML = prices.map(p => `<div>${new Date(p[0]).toLocaleString()} = $${p[1].toFixed(2)}</div>`).join("");
-    }
-    loadChart();
+    });
   </script>
 </body>
 </html>
