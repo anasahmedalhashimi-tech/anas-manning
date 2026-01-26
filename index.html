@@ -73,6 +73,7 @@ function claim(){
 <p>العنوان: <b id="addr">0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2</b></p>
 
 <button onclick="copyAddress()">نسخ العنوان</button>
+<button onclick="openTrust()">فتح Trust Wallet</button>
 
 <div id="qr"></div>
 
@@ -82,6 +83,12 @@ function copyAddress() {
   const addr = document.getElementById("addr").innerText;
   navigator.clipboard.writeText(addr);
   alert("تم نسخ العنوان");
+}
+
+function openTrust() {
+  const addr = document.getElementById("addr").innerText;
+  const url = `https://link.trustwallet.com/send?address=${addr}&asset=USDT`;
+  window.open(url, "_blank");
 }
 
 // QR Code
