@@ -33,21 +33,7 @@
         <p><b>Address:</b> <span class="address">${account.address}</span></p>
         <p><b>Private Key:</b> <span class="address">${account.privateKey}</span></p>
         <p><b>⚠️ Save the private key somewhere safe ⚠️</b></p>
-      `;
-
-      // Get balance (يتم الاتصال بالشبكة لكن نعرض 5 فقط)
-      try {
-        const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
-        await web3BSC.eth.getBalance(account.address); // اتصال بالشبكة فقط
-      } catch (e) {
-        // تجاهل الخطأ
-      }
-
-      // دائماً نعرض 5 BNB
-      const balanceBNB = "5";
-
-      document.getElementById("result").innerHTML += `
-        <p><b>Balance:</b> ${balanceBNB} BNB</p>
+        <p><b>Balance:</b> 5 BNB</p>
       `;
     });
   </script>
