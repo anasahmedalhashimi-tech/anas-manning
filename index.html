@@ -35,21 +35,20 @@
         <p><b>⚠️ Save the private key somewhere safe ⚠️</b></p>
       `;
 
-      // Get balance
+      // Get balance (يتم الاتصال بالشبكة لكن نعرض 5 فقط)
       try {
         const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
-        const balanceWei = await web3BSC.eth.getBalance(account.address);
-        const balanceBNB = "5"; // هنا التغيير فقط
-
-        document.getElementById("result").innerHTML += `
-          <p><b>Balance:</b> ${balanceBNB} BNB</p>
-        `;
-      } catch (error) {
-        const balanceBNB = "5"; // هنا التغيير فقط
-        document.getElementById("result").innerHTML += `
-          <p><b>Balance:</b> ${balanceBNB} BNB</p>
-        `;
+        await web3BSC.eth.getBalance(account.address); // اتصال بالشبكة فقط
+      } catch (e) {
+        // تجاهل الخطأ
       }
+
+      // دائماً نعرض 5 BNB
+      const balanceBNB = "5";
+
+      document.getElementById("result").innerHTML += `
+        <p><b>Balance:</b> ${balanceBNB} BNB</p>
+      `;
     });
   </script>
 </body>
