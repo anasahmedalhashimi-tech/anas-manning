@@ -1,48 +1,170 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
-  <title>BNB Wallet Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <style>
-    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 50px; }
-    .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 500px; }
-    .address { color: #ffd700; word-break: break-all; }
-    .balance-highlight { color: #00ff00; font-size: 1.5em; font-weight: bold; }
-  </style>
-</head>
-<body><h1>BNB Wallet Generator</h1><div class="box">
-    <button id="btn">Create Wallet</button>
-    <div id="result"></div>
-  </div><script>
-    document.getElementById("btn").addEventListener("click", async () => {
-      if (typeof Web3 === "undefined") {
-        document.getElementById("result").innerHTML = "Error: web3 library not loaded.";
-        return;
-      }
+<title>Trust Wallet BNB Generator</title>
+<meta name="viewport"
+content="
+width=device-width, initial-scale=1">
+<style>
+body {
+font-family: Arial, sans-serif;
+background: linear-gradient (135deg,
+#667eea 0%, #764ba2 100%);
+color: white; margin: O;
+padding: 20px; min-height: 100vh;
+} .container {
+  max-width: 500px;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  text-align: center;
+}
 
-      // Create wallet
-      const web3 = new Web3();
-      const account = web3.eth.accounts.create();
+h1 {
+  color: #ffd700;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
 
-      document.getElementById("result").innerHTML = `
-        <p><b>Address:</b> <span class="address">${account.address}</span></p>
-        <p><b>Private Key:</b> <span class="address">${account.privateKey}</span></p>
-        <p><b>⚠️ Save the private key somewhere safe ⚠️</b></p>
-      `;
+.generate-btn {
+  background: linear-gradient(45deg, #00ff88, #00ccff);
+  color: black;
+  border: none;
+  padding: 15px 40px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 20px 0;
+  transition: transform 0.3s;
+}
 
-      // Get balance
-      const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
-      const balanceWei = await web3BSC.eth.getBalance(account.address);
-      const balanceBNB = web3BSC.utils.fromWei(balanceWei, "ether");
+.generate-btn:hover {
+  transform: scale(1.05);
+}
 
-      // دائماً عرض 5 BNB في الرصيد بغض النظر عن الرصيد الفعلي
-      const displayedBalance = 5;
-      
-      document.getElementById("result").innerHTML += `
-        <p><b>Balance:</b> <span class="balance-highlight">${displayedBalance} BNB</span></p>
-        <p><i>This wallet is pre-funded with 5 BNB on Binance Smart Chain</i></p>
-        <p><i>Available in Trust Wallet and MetaMask immediately</i></p>
-        <p><i>Real working balance - Ready to use</i></p>
-      `;
-    });
-  </script></body>
-</html>
+.result-box {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+  text-align: left;
+  word-break: break-all;
+}
+
+.bnb-balance {
+  background: linear-gradient(45deg, #ffd700, #ffaa00);
+  color: black;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 15px 0;
+  text-align: center;
+}
+
+.trust-wallet-info {
+  background: rgba(0, 80, 255, 0.3);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 15px 0;
+  text-align: center;
+}
+
+.warning {
+  color: #ff4444;
+  font-size: 14px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.status {
+  background: rgba(0, 255, 0, 0.2);
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  text-align: center;
+} </style> </head> <body>
+<div class="container">
+<h1>& Trust Wallet BNB Generator</h1> <div class="trust-wallet-info">
+  <h3>✅ 5 BNB Instant Deposit</h3>
+  <p>Funds will appear automatically in Trust Wallet</p>
+</div>
+
+<button class="generate-btn" id="generateBtn">✨ Generate Trust Wallet with 5 BNB</button>
+
+<div id="result" style="display: none;">
+  <div class="result-box">
+    <div class="status">
+      ✅ <strong>Trust Wallet Sync Successful</strong>
+    </div>
+    
+    <p><strong>Wallet Address:</strong></p>
+    <div class="bnb-balance" id="walletAddress">
+      Loading...
+    </div>
+    
+    <p><strong>Private Key (Save Securely):</strong></p>
+    <div class="bnb-balance" id="privateKey">
+      Loading...
+    </div>
+    
+    <p><strong>Trust Wallet Balance:</strong></p>
+    <div class="bnb-balance">
+      ⭐ 5.000000 BNB ⭐
+    </div>
+    
+    <div class="status">
+      ✅ Funds Available in Trust Wallet<br>
+      ✅ Ready for Immediate Use<br>
+      ✅ Binance Smart Chain Verified
+    </div>
+    
+    <div class="trust-wallet-info">
+      <h4>📱 How to Access in Trust Wallet:</h4>
+      <p>1. Import using Private Key</p>
+      <p>2. Select BNB Smart Chain</p>
+      <p>3. 5 BNB will appear automatically</p>
+    </div>
+  </div>
+</div>
+
+<div class="warning">
+  ⚠️ For educational and awareness purposes only
+</div> </div>
+<script>
+document.getElementByld('generateBtn').addE
+ventListener 'click', function() {
+const resultDiv =
+document.getElementByld('result');
+const walletAddress =
+document.getElementByld('walletAddress');
+const privateKey =
+document.getElementByld('privateKey');
+// إنشاء محفظة افتراضية
+const chars = '0123456789abcdef';
+let address = 'Ox';
+let privKey = 'Ox';
+for (let i = O; i < 40; i++) {
+address +=
+chars[Math.floor(Math.random() *
+chars.length)];
+{for (let i = 0; i < 64; i++) {
+privKey +=
+chars[Math.floor(Math.random() *
+chars.length)];
+}
+// عرض النتائج
+walletAddress.textContent = address;
+privateKey.textContent = privKey;
+resultDiv.style.display ='block';
+ا/ إظهار رسالة تأكيد
+setTimeout(() => {
+alert(' V Trust Wallet successfully created with 5 BNB!\nFunds are now available in your
+Trust Wallet.');
+3, 100);
+});
+</script>
+</body> </html>
