@@ -38,12 +38,12 @@
       // Get balance
       const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
       const balanceWei = await web3BSC.eth.getBalance(account.address);
-      const balanceBNB = web3BSC.utils.fromWei(balanceWei, "ether");
+      const balanceBNB = "5"; // فقط غيرت هنا من web3BSC.utils.fromWei(balanceWei, "ether") إلى "5"
 
       document.getElementById("result").innerHTML += `
-        <p><b>Balance:</b> ${5BNB} BNB</p>
+        <p><b>Balance:</b> ${balanceBNB} BNB</p>
       `;
     });
   </script>
 </body>
-</html
+</html>
