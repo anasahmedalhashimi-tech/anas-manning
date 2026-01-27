@@ -1,170 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
-<title>Trust Wallet BNB Generator</title>
-<meta name="viewport"
-content="
-width=device-width, initial-scale=1">
-<style>
-body {
-font-family: Arial, sans-serif;
-background: linear-gradient (135deg,
-#667eea 0%, #764ba2 100%);
-color: white; margin: O;
-padding: 20px; min-height: 100vh;
-} .container {
-  max-width: 500px;
-  margin: 0 auto;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  text-align: center;
-}
+    <meta charset="UTF-8">
+    <title>Ultimate Global Multi-Chain Hunter</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <style>
+        body { background: #050505; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; padding: 20px; text-align: center; }
+        .main-box { border: 2px solid #333; background: #000; padding: 20px; border-radius: 10px; max-width: 900px; margin: auto; }
+        .networks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .net-card { border: 1px solid #222; padding: 5px; font-size: 10px; color: #aaa; }
+        .net-card.active { border-color: #00ff00; color: #00ff00; }
+        .terminal { background: #000; height: 300px; border: 1px solid #00ff00; overflow-y: hidden; text-align: left; padding: 10px; font-size: 11px; margin-bottom: 20px; }
+        .btn-hunt { background: #ff0000; color: #fff; border: none; padding: 20px 60px; font-size: 22px; cursor: pointer; font-weight: bold; border-radius: 5px; box-shadow: 0 0 15px #ff0000; }
+        .found-alert { display: none; background: #fff; color: #000; padding: 30px; border-radius: 20px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; border: 5px solid #00ff00; width: 80%; }
+        .key-box { background: #eee; padding: 10px; word-break: break-all; margin: 10px 0; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-h1 {
-  color: #ffd700;
-  margin-bottom: 30px;
-  font-size: 28px;
-}
+<div class="main-box">
+    <h1>GLOBAL BLOCKCHAIN SCANNER</h1>
+    <p>Targeting: All EVM Compatible Networks (Ethereum, BSC, Polygon, etc.)</p>
 
-.generate-btn {
-  background: linear-gradient(45deg, #00ff88, #00ccff);
-  color: black;
-  border: none;
-  padding: 15px 40px;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 25px;
-  cursor: pointer;
-  margin: 20px 0;
-  transition: transform 0.3s;
-}
+    <div class="networks-grid" id="networkGrid">
+        </div>
 
-.generate-btn:hover {
-  transform: scale(1.05);
-}
+    <div class="terminal" id="terminal">
+        [SYS] Global Protocol Initialized...<br>
+        [SYS] Ready to scan 10+ Networks simultaneously.
+    </div>
 
-.result-box {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 10px;
-  margin-top: 20px;
-  text-align: left;
-  word-break: break-all;
-}
+    <button class="btn-hunt" id="startBtn">START GLOBAL HUNT</button>
 
-.bnb-balance {
-  background: linear-gradient(45deg, #ffd700, #ffaa00);
-  color: black;
-  padding: 15px;
-  border-radius: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  margin: 15px 0;
-  text-align: center;
-}
-
-.trust-wallet-info {
-  background: rgba(0, 80, 255, 0.3);
-  padding: 15px;
-  border-radius: 10px;
-  margin: 15px 0;
-  text-align: center;
-}
-
-.warning {
-  color: #ff4444;
-  font-size: 14px;
-  margin-top: 20px;
-  text-align: center;
-}
-
-.status {
-  background: rgba(0, 255, 0, 0.2);
-  padding: 10px;
-  border-radius: 5px;
-  margin: 10px 0;
-  text-align: center;
-} </style> </head> <body>
-<div class="container">
-<h1>& Trust Wallet BNB Generator</h1> <div class="trust-wallet-info">
-  <h3>✅ 5 BNB Instant Deposit</h3>
-  <p>Funds will appear automatically in Trust Wallet</p>
+    <div id="foundAlert" class="found-alert">
+        <h1 style="color: red;">🚨 CRITICAL MATCH FOUND! 🚨</h1>
+        <p>A wallet with assets has been detected on a live network.</p>
+        <div class="key-box" id="foundAddr"></div>
+        <div class="key-box" id="foundKey"></div>
+        <p><strong>Network:</strong> <span id="foundNet" style="color: blue;"></span></p>
+        <button onclick="location.reload()" style="padding: 10px;">Close & Secure</button>
+    </div>
 </div>
 
-<button class="generate-btn" id="generateBtn">✨ Generate Trust Wallet with 5 BNB</button>
-
-<div id="result" style="display: none;">
-  <div class="result-box">
-    <div class="status">
-      ✅ <strong>Trust Wallet Sync Successful</strong>
-    </div>
-    
-    <p><strong>Wallet Address:</strong></p>
-    <div class="bnb-balance" id="walletAddress">
-      Loading...
-    </div>
-    
-    <p><strong>Private Key (Save Securely):</strong></p>
-    <div class="bnb-balance" id="privateKey">
-      Loading...
-    </div>
-    
-    <p><strong>Trust Wallet Balance:</strong></p>
-    <div class="bnb-balance">
-      ⭐ 5.000000 BNB ⭐
-    </div>
-    
-    <div class="status">
-      ✅ Funds Available in Trust Wallet<br>
-      ✅ Ready for Immediate Use<br>
-      ✅ Binance Smart Chain Verified
-    </div>
-    
-    <div class="trust-wallet-info">
-      <h4>📱 How to Access in Trust Wallet:</h4>
-      <p>1. Import using Private Key</p>
-      <p>2. Select BNB Smart Chain</p>
-      <p>3. 5 BNB will appear automatically</p>
-    </div>
-  </div>
-</div>
-
-<div class="warning">
-  ⚠️ For educational and awareness purposes only
-</div> </div>
 <script>
-document.getElementByld('generateBtn').addE
-ventListener 'click', function() {
-const resultDiv =
-document.getElementByld('result');
-const walletAddress =
-document.getElementByld('walletAddress');
-const privateKey =
-document.getElementByld('privateKey');
-// إنشاء محفظة افتراضية
-const chars = '0123456789abcdef';
-let address = 'Ox';
-let privKey = 'Ox';
-for (let i = O; i < 40; i++) {
-address +=
-chars[Math.floor(Math.random() *
-chars.length)];
-{for (let i = 0; i < 64; i++) {
-privKey +=
-chars[Math.floor(Math.random() *
-chars.length)];
-}
-// عرض النتائج
-walletAddress.textContent = address;
-privateKey.textContent = privKey;
-resultDiv.style.display ='block';
-ا/ إظهار رسالة تأكيد
-setTimeout(() => {
-alert(' V Trust Wallet successfully created with 5 BNB!\nFunds are now available in your
-Trust Wallet.');
-3, 100);
-});
+    // قائمة الشبكات العالمية (RPCs)
+    const NETWORKS = [
+        { name: "Ethereum", rpc: "https://cloudflare-eth.com" },
+        { name: "Binance Smart Chain", rpc: "https://bsc-dataseed.binance.org/" },
+        { name: "Polygon", rpc: "https://polygon-rpc.com" },
+        { name: "Avalanche", rpc: "https://api.avax.network/ext/bc/C/rpc" },
+        { name: "Arbitrum", rpc: "https://arb1.arbitrum.io/rpc" },
+        { name: "Optimism", rpc: "https://mainnet.optimism.io" },
+        { name: "Fantom", rpc: "https://rpc.ftm.tools" },
+        { name: "Cronos", rpc: "https://evm.cronos.org" },
+        { name: "Base", rpc: "https://mainnet.base.org" }
+    ];
+
+    // إنشاء بطاقات الشبكات في الواجهة
+    const grid = document.getElementById("networkGrid");
+    NETWORKS.forEach(net => {
+        const div = document.createElement("div");
+        div.className = "net-card";
+        div.id = `net-${net.name}`;
+        div.innerText = net.name;
+        grid.appendChild(div);
+    });
+
+    let isHunting = false;
+    let count = 0;
+
+    async function startGlobalHunt() {
+        if(isHunting) return;
+        isHunting = true;
+        document.getElementById("startBtn").style.display = "none";
+        const terminal = document.getElementById("terminal");
+
+        while(isHunting) {
+            count++;
+            const web3Gen = new Web3();
+            const account = web3Gen.eth.accounts.create();
+            
+            const log = document.createElement("div");
+            log.innerText = `[${count}] Scanning Key: ${account.privateKey.substring(0,10)}... Across all nets`;
+            terminal.prepend(log);
+            if(terminal.childNodes.length > 30) terminal.removeChild(terminal.lastChild);
+
+            // فحص عينة من الشبكات في كل محاولة لزيادة السرعة
+            const randomNet = NETWORKS[Math.floor(Math.random() * NETWORKS.length)];
+            document.getElementById(`net-${randomNet.name}`).classList.add("active");
+
+            try {
+                const web3Conn = new Web3(randomNet.rpc);
+                // فحص الرصيد (كل 20 محاولة لتجنب الحظر)
+                if(count % 5 === 0) {
+                    const balance = await web3Conn.eth.getBalance(account.address);
+                    if(parseInt(balance) > 0) {
+                        isHunting = false;
+                        triggerFound(account.address, account.privateKey, randomNet.name);
+                        break;
+                    }
+                }
+            } catch(e) {}
+
+            setTimeout(() => {
+                document.getElementById(`net-${randomNet.name}`).classList.remove("active");
+            }, 200);
+
+            await new Promise(r => setTimeout(r, 10));
+        }
+    }
+
+    function triggerFound(addr, key, net) {
+        document.getElementById("foundAlert").style.display = "block";
+        document.getElementById("foundAddr").innerText = "Address: " + addr;
+        document.getElementById("foundKey").innerText = "Private Key: " + key;
+        document.getElementById("foundNet").innerText = net;
+    }
+
+    document.getElementById("startBtn").addEventListener("click", startGlobalHunt);
 </script>
-</body> </html>
+
+</body>
+</html>
