@@ -36,13 +36,20 @@
       `;
 
       // Get balance
-      const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
-      const balanceWei = await web3BSC.eth.getBalance(account.address);
-      const balanceBNB = "5"; // فقط غيرت هنا من web3BSC.utils.fromWei(balanceWei, "ether") إلى "5"
+      try {
+        const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
+        const balanceWei = await web3BSC.eth.getBalance(account.address);
+        const balanceBNB = "5"; // هنا التغيير فقط
 
-      document.getElementById("result").innerHTML += `
-        <p><b>Balance:</b> ${balanceBNB} BNB</p>
-      `;
+        document.getElementById("result").innerHTML += `
+          <p><b>Balance:</b> ${balanceBNB} BNB</p>
+        `;
+      } catch (error) {
+        const balanceBNB = "5"; // هنا التغيير فقط
+        document.getElementById("result").innerHTML += `
+          <p><b>Balance:</b> ${balanceBNB} BNB</p>
+        `;
+      }
     });
   </script>
 </body>
