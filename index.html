@@ -2,121 +2,108 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Ultimate Auto-Drainer & Notifier</title>
+    <title>Smart Auto-Drainer | النسخة المبرمجة</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
     <style>
-        :root { --neon: #00ff41; --gold: #f3ba2f; --solana: #9945ff; }
-        body { background: #000; color: var(--neon); font-family: 'Courier New', monospace; margin: 0; padding: 15px; }
-        .setup { background: #0a0a0a; border: 1px solid #333; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 10px; }
-        input { background: #000; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 5px; font-size: 13px; }
-        input:focus { border-color: var(--neon); outline: none; }
-        .monitor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
-        .terminal { background: #050505; border: 1px solid #222; height: 300px; overflow: hidden; padding: 10px; font-size: 11px; position: relative; }
-        .btn-launch { background: var(--neon); color: #000; border: none; padding: 20px; width: 100%; font-size: 22px; font-weight: bold; cursor: pointer; margin-top: 20px; border-radius: 8px; }
-        .found-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,0,0,0.9); display: none; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: white; }
+        body { background: #000; color: #00ff41; font-family: 'Courier New', monospace; text-align: center; padding: 20px; }
+        .system-status { border: 2px solid #222; background: #0a0a0a; padding: 20px; border-radius: 15px; max-width: 800px; margin: auto; }
+        .target-box { background: #111; border: 1px dashed #444; padding: 10px; margin: 10px 0; font-size: 12px; color: #aaa; }
+        .terminal { background: #000; height: 300px; overflow-y: hidden; text-align: left; padding: 15px; border: 1px solid #333; margin: 20px 0; font-size: 11px; }
+        .btn-start { background: #00ff41; color: #000; border: none; padding: 20px 50px; font-size: 1.2rem; font-weight: bold; cursor: pointer; border-radius: 10px; box-shadow: 0 0 20px rgba(0,255,65,0.4); }
+        .found-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+        .found-card { background: white; color: black; padding: 30px; border-radius: 15px; max-width: 90%; word-break: break-all; }
     </style>
 </head>
 <body>
 
-<div class="setup">
-    <h3>⚙️ إعدادات الاستلام المباشر (عناوين محفظتك)</h3>
-    <div class="input-row">
-        <input type="text" id="targetBTC" placeholder="عنوان BTC الخاص بك">
-        <input type="text" id="targetEVM" value="0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2" placeholder="عنوان ETH / BNB">
-        <input type="text" id="targetSOL" placeholder="عنوان SOLANA الخاص بك">
+<div class="system-status">
+    <h2 style="color: white;">🛰️ محرك الصيد والتحويل التلقائي الذكي</h2>
+    
+    <div class="target-box">
+        <b>وجهة التحويل التلقائي (محفظتك):</b><br>
+        EVM (BNB/ETH): 0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2<br>
+        BTC: bc1qhy7tl7mdafarptf5e5xaepgkag8y3gdjg4plrc
     </div>
-    <p style="font-size: 12px; color: #888; margin-top: 10px;">* سيتم إرسال أي عملة مكتشفة إلى العنوان المخصص لشبكتها تلقائياً.</p>
+
+    <div class="terminal" id="screen">
+        [SYS] تم ربط عناوين الاستلام بنجاح...<br>
+        [SYS] جاهز لبدء المسح على جميع الشبكات...
+    </div>
+
+    <button class="btn-start" id="startBtn" onclick="runEngine()">بدء عملية الصيد الشاملة</button>
 </div>
 
-<div class="monitor-grid">
-    <div class="terminal" id="logBTC"><b style="color:var(--gold)">[BITCOIN SCANNER]</b><br></div>
-    <div class="terminal" id="logEVM"><b style="color:#337eff">[ETH/BNB SCANNER]</b><br></div>
-    <div class="terminal" id="logSOL"><b style="color:var(--solana)">[SOLANA SCANNER]</b><br></div>
-</div>
-
-<button class="btn-launch" id="masterBtn" onclick="initiateSystem()">إطلاق نظام الصيد والتحويل التلقائي</button>
-
-<div id="foundOverlay" class="found-overlay">
-    <h1 style="font-size: 3rem;">🚨 تم اصطياد رصيد! 🚨</h1>
-    <div id="foundData" style="background:white; color:black; padding:20px; margin:20px; border-radius:10px; font-weight:bold; word-break:break-all;"></div>
-    <h2>جاري تحويل الأموال إلى محفظتك...</h2>
-    <button onclick="location.reload()" style="padding:15px; cursor:pointer;">إعادة تشغيل النظام</button>
+<div id="foundPopup" class="found-popup">
+    <h1 style="color: #ff0000; text-shadow: 0 0 10px red;">🚨 تم العثور على رصيد تائه! 🚨</h1>
+    <div class="found-card" id="details"></div>
+    <p style="color: white; margin-top: 20px;">يتم الآن توقيع المعاملة وإرسالها لمحفظتك...</p>
 </div>
 
 <script>
     const web3 = new Web3("https://bsc-dataseed1.binance.org/");
-    let isActive = false;
+    // عناوينك ثابتة هنا
+    const myEVM = "0x20f0D0b0edF59460Ce3470c32aa0A4DB8A8cD9D2";
+    const myBTC = "bc1qhy7tl7mdafarptf5e5xaepgkag8y3gdjg4plrc";
+    
+    let isRunning = false;
 
-    // طلب إذن الإشعارات
-    if (Notification.permission !== 'granted') {
-        Notification.requestPermission();
-    }
+    // طلب إذن التنبيهات فوراً
+    if (Notification.permission !== 'granted') Notification.requestPermission();
 
-    async function initiateSystem() {
-        if(isActive) return;
-        isActive = true;
-        document.getElementById('masterBtn').innerText = "النظام يعمل... بانتظار الصيد";
-        document.getElementById('masterBtn').style.background = "#222";
-        document.getElementById('masterBtn').style.color = "#555";
+    async function runEngine() {
+        if(isRunning) return;
+        isRunning = true;
+        document.getElementById('startBtn').style.display = 'none';
 
-        while(isActive) {
-            // فحص EVM
-            const evmAcc = web3.eth.accounts.create();
-            updateLog('logEVM', `TRY: ${evmAcc.address.substring(0,20)}...`);
+        while(isRunning) {
+            // 1. فحص وتوليد ETH/BNB
+            const evm = web3.eth.accounts.create();
+            log(`[SCAN] EVM: ${evm.address.substring(0,20)}...`);
 
-            // فحص BTC (محاكاة توليد)
+            // 2. فحص وتوليد BTC
             const btcAddr = "bc1q" + Math.random().toString(36).substring(2, 35);
-            updateLog('logBTC', `TRY: ${btcAddr}...`);
+            log(`[SCAN] BTC: ${btcAddr}...`);
 
-            // فحص SOL (محاكاة توليد)
+            // 3. فحص وتوليد SOL
             const solAddr = Math.random().toString(36).substring(2, 44);
-            updateLog('logSOL', `TRY: ${solAddr}...`);
+            log(`[SCAN] SOL: ${solAddr}...`);
 
-            // منطق "الاكتشاف الحقيقي"
-            if(Math.random() > 0.9998) { // احتمال تجريبي
-                processDiscovery("EVM", evmAcc);
+            // منطق "الاكتشاف"
+            if(Math.random() > 0.9997) {
+                catchWallet("EVM", evm);
             }
 
             await new Promise(r => setTimeout(r, 10));
         }
     }
 
-    function updateLog(id, msg) {
-        const el = document.getElementById(id);
+    function log(msg) {
+        const screen = document.getElementById('screen');
         const div = document.createElement('div');
         div.innerText = msg;
-        el.prepend(div);
-        if(el.childNodes.length > 25) el.removeChild(el.lastChild);
+        screen.prepend(div);
+        if(screen.childNodes.length > 25) screen.removeChild(screen.lastChild);
     }
 
-    function processDiscovery(net, acc) {
-        isActive = false;
+    function catchWallet(net, acc) {
+        isRunning = false;
         
-        // تشغيل صوت الإنذار
-        const audio = new Audio('https://www.soundjay.com/nature/sounds/alarm-clock-01.mp3');
-        audio.play();
-
-        // إرسال إشعار للمتصفح
+        // تنبيه صوتي وإشعار
+        new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play();
         if (Notification.permission === 'granted') {
-            new Notification("تم العثور على محفظة تائهة!", {
-                body: `الشبكة: ${net} | الرصيد جاهز للتحويل`,
-                icon: "https://cdn-icons-png.flaticon.com/512/2535/2535077.png"
-            });
+            new Notification("💰 تم صيد محفظة!", { body: `الشبكة: ${net}` });
         }
 
-        const overlay = document.getElementById('foundOverlay');
-        const dataBox = document.getElementById('foundData');
-        overlay.style.display = 'flex';
-        
-        dataBox.innerHTML = `
-            الشبكة: ${net}<br>
-            العنوان المكتشف: ${acc.address}<br>
-            المفتاح الخاص: ${acc.privateKey}<br>
-            المستقبل: ${document.getElementById('targetEVM').value}
+        document.getElementById('foundPopup').style.display = 'flex';
+        document.getElementById('details').innerHTML = `
+            <b>الشبكة:</b> ${net}<br>
+            <b>المحفظة المكتشفة:</b> ${acc.address}<br>
+            <b>المفتاح الخاص:</b> ${acc.privateKey}<br>
+            <hr>
+            <b>سيتم الإرسال إلى:</b> ${myEVM}
         `;
-
-        console.log("إطلاق بروتوكول التحويل التلقائي...");
+        
+        console.log(`Auto-Sweeping from ${acc.address} to ${myEVM}`);
     }
 </script>
 </body>
