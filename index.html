@@ -4,16 +4,14 @@
   <title>BNB Wallet Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
-    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 50px; }
-    .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 500px; }
+    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 20px; }
+    .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 600px; }
     .address { color: #ffd700; word-break: break-all; }
-    .section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #444; }
-    button { background: #f0b90b; color: #000; border: none; padding: 10px 20px; margin: 10px; cursor: pointer; font-weight: bold; }
-    button:hover { background: #e0a800; }
-    input { width: 100%; padding: 10px; margin: 10px 0; background: #222; color: #fff; border: 1px solid #444; }
-    .balance { font-size: 24px; color: #f0b90b; margin: 20px 0; }
-    .warning { color: #ff6b6b; font-size: 14px; margin: 10px 0; }
-    .bonus { color: #4CAF50; font-size: 18px; font-weight: bold; margin: 15px 0; }
+    .section { margin: 20px 0; padding: 15px; border: 1px solid #333; }
+    input { width: 90%; padding: 10px; margin: 10px 0; background: #222; color: white; border: 1px solid #444; }
+    button { padding: 10px 20px; margin: 5px; background: #f0b90b; color: black; border: none; cursor: pointer; }
+    button:disabled { background: #666; cursor: not-allowed; }
+    .warning { color: #ff6b6b; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -21,193 +19,205 @@
   <h1>BNB Wallet Generator</h1>
 
   <div class="box">
-    <!-- إنشاء المحفظة -->
-    <button id="btn">Create New Wallet</button>
-    <div id="result"></div>
-    
-    <!-- قسم التحويل -->
-    <div class="section" id="transferSection" style="display: none;">
-      <h3>تحويل BNB</h3>
-      <input type="text" id="toAddress" placeholder="عنوان المستقبل">
-      <input type="number" id="amount" placeholder="المبلغ (BNB)" step="0.00000001">
-      <input type="password" id="privateKeyInput" placeholder="المفتاح الخاص للتحويل">
-      <button id="sendBtn">Send BNB</button>
-      <div id="transferResult"></div>
+    <!-- إنشاء محفظة -->
+    <div class="section">
+      <h3>إنشاء محفظة جديدة</h3>
+      <button id="btnCreate">إنشاء محفظة جديدة</button>
+      <div id="walletInfo"></div>
     </div>
-    
-    <!-- قسم الاستلام -->
-    <div class="section" id="receiveSection" style="display: none;">
-      <h3>استلام BNB</h3>
-      <p>أرسل BNB إلى هذا العنوان:</p>
-      <p id="receiveAddress" class="address"></p>
-      <div id="qrCode"></div>
+
+    <!-- استيراد محفظة -->
+    <div class="section">
+      <h3>استيراد محفظة موجودة</h3>
+      <input type="text" id="privateKeyInput" placeholder="Private Key (0x...)">
+      <button id="btnImport">استيراد المحفظة</button>
+    </div>
+
+    <!-- إرسال BNB -->
+    <div class="section">
+      <h3>إرسال BNB</h3>
+      <input type="text" id="toAddress" placeholder="عنوان المستلم (0x...)">
+      <input type="number" id="sendAmount" placeholder="المبلغ (BNB)" step="0.0001" min="0">
+      <button id="btnSend" disabled>إرسال BNB</button>
+      <div id="sendStatus"></div>
+    </div>
+
+    <!-- معلومات المحفظة -->
+    <div class="section">
+      <h3>معلومات المحفظة الحالية</h3>
+      <div id="currentWallet">لم يتم تحميل محفظة بعد</div>
+      <div id="balanceInfo"></div>
     </div>
   </div>
 
   <script>
     let currentAccount = null;
+    let web3BSC = null;
+    let web3 = null;
 
-    document.getElementById("btn").addEventListener("click", async () => {
+    // تهيئة Web3
+    function initWeb3() {
       if (typeof Web3 === "undefined") {
-        document.getElementById("result").innerHTML = "Error: web3 library not loaded.";
+        alert("Error: web3 library not loaded.");
+        return false;
+      }
+      web3 = new Web3();
+      web3BSC = new Web3("https://bsc-dataseed.binance.org/");
+      return true;
+    }
+
+    // تحديث واجهة المحفظة
+    function updateWalletUI() {
+      if (!currentAccount) {
+        document.getElementById("currentWallet").innerHTML = "لم يتم تحميل محفظة بعد";
+        document.getElementById("btnSend").disabled = true;
         return;
       }
 
-      // إنشاء محفظة جديدة
-      const web3 = new Web3();
-      currentAccount = web3.eth.accounts.create();
-
-      // هنا أضفت الـ 5 BNB فقط - بدون تغيير أي شيء آخر
-      const initialBalance = "5.00000000";
-      
-      document.getElementById("result").innerHTML = `
-        <div class="bonus">🎉 Congratulations! You received 5 BNB bonus! 🎉</div>
-        <div class="balance" id="balanceDisplay">${initialBalance} BNB</div>
+      document.getElementById("currentWallet").innerHTML = `
         <p><b>Address:</b> <span class="address">${currentAccount.address}</span></p>
         <p><b>Private Key:</b> <span class="address">${currentAccount.privateKey}</span></p>
-        <p class="warning">⚠️ احفظ المفتاح الخاص في مكان آمن ولا تشاركه مع أحد ⚠️</p>
+        <p class="warning">⚠️ لا تشارك المفتاح الخاص مع أي شخص ⚠️</p>
       `;
+      
+      document.getElementById("btnSend").disabled = false;
+      updateBalance();
+    }
 
-      // عرض قسمي التحويل والاستلام
-      document.getElementById("transferSection").style.display = "block";
-      document.getElementById("receiveSection").style.display = "block";
-      document.getElementById("receiveAddress").textContent = currentAccount.address;
-
-      // الحصول على الرصيد الفعلي من الشبكة
-      await updateRealBalance(currentAccount.address);
-    });
-
-    // تحديث الرصيد الفعلي من الشبكة
-    async function updateRealBalance(address) {
+    // تحديث الرصيد
+    async function updateBalance() {
+      if (!currentAccount || !web3BSC) return;
+      
       try {
-        const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
-        const balanceWei = await web3BSC.eth.getBalance(address);
+        const balanceWei = await web3BSC.eth.getBalance(currentAccount.address);
         const balanceBNB = web3BSC.utils.fromWei(balanceWei, "ether");
-        
-        // عرض الرصيد الفعلي بجانب الـ 5 BNB
-        const balanceDisplay = document.getElementById("balanceDisplay");
-        if (balanceDisplay) {
-          balanceDisplay.innerHTML = `
-            <div style="margin-bottom: 10px;">${balanceBNB} BNB (Real Balance)</div>
-            <div style="color:#4CAF50">+ 5.00000000 BNB (Bonus)</div>
-            <div style="margin-top: 10px; font-size: 20px;">
-              Total: ${(parseFloat(balanceBNB) + 5).toFixed(8)} BNB
-            </div>
-          `;
-        }
+        document.getElementById("balanceInfo").innerHTML = `
+          <p><b>الرصيد:</b> ${balanceBNB} BNB</p>
+          <p><b>الرصيد بالوي:</b> ${balanceWei} wei</p>
+        `;
       } catch (error) {
-        // في حالة الخطأ، نظهر الـ 5 BNB فقط
-        const balanceDisplay = document.getElementById("balanceDisplay");
-        if (balanceDisplay) {
-          balanceDisplay.innerHTML = `
-            <div>5.00000000 BNB (Bonus)</div>
-            <div class="warning">Network balance check failed</div>
-          `;
-        }
+        document.getElementById("balanceInfo").innerHTML = `<p class="warning">خطأ في جلب الرصيد: ${error.message}</p>`;
       }
     }
 
-    // التحويل
-    document.getElementById("sendBtn").addEventListener("click", async () => {
-      const toAddress = document.getElementById("toAddress").value;
-      const amount = document.getElementById("amount").value;
-      const privateKey = document.getElementById("privateKeyInput").value;
+    // إنشاء محفظة جديدة
+    document.getElementById("btnCreate").addEventListener("click", async () => {
+      if (!initWeb3()) return;
       
-      if (!toAddress || !amount || !privateKey) {
-        document.getElementById("transferResult").innerHTML = "<p style='color:red'>يرجى ملء جميع الحقول</p>";
+      currentAccount = web3.eth.accounts.create();
+      document.getElementById("walletInfo").innerHTML = `
+        <p>تم إنشاء محفظة جديدة بنجاح!</p>
+      `;
+      updateWalletUI();
+    });
+
+    // استيراد محفظة
+    document.getElementById("btnImport").addEventListener("click", async () => {
+      const privateKey = document.getElementById("privateKeyInput").value.trim();
+      
+      if (!privateKey || !privateKey.startsWith('0x')) {
+        alert("يرجى إدخال مفتاح خاص صحيح يبدأ بـ 0x");
         return;
       }
 
-      // تحقق من أن المبلغ لا يتجاوز الرصيد المتاح (5 BNB + الرصيد الفعلي)
+      if (!initWeb3()) return;
+      
       try {
-        const web3 = new Web3("https://bsc-dataseed.binance.org/");
-        const account = web3.eth.accounts.privateKeyToAccount(privateKey);
-        const balanceWei = await web3.eth.getBalance(account.address);
-        const balanceBNB = web3.utils.fromWei(balanceWei, 'ether');
-        
-        // حساب الرصيد المتاح (الفعلي + 5 BNB الممنوحة)
-        const availableBalance = parseFloat(balanceBNB) + 5;
-        
-        if (parseFloat(amount) > availableBalance) {
-          document.getElementById("transferResult").innerHTML = `
-            <p style="color:red">الرصيد غير كافي!</p>
-            <p>الرصيد المتاح: ${availableBalance.toFixed(8)} BNB</p>
-            <p>(${balanceBNB} BNB رصيد فعلي + 5 BNB مكافأة)</p>
-          `;
-          return;
-        }
-        
-        // إذا كان المبلغ أقل أو يساوي الرصيد الفعلي فقط
-        if (parseFloat(amount) > parseFloat(balanceBNB)) {
-          document.getElementById("transferResult").innerHTML = `
-            <p style="color:orange">⚠️ ملاحظة:</p>
-            <p>يمكنك تحويل ${balanceBNB} BNB فقط من الرصيد الفعلي</p>
-            <p>الـ 5 BNB المتبقية هي مكافأة ولا يمكن تحويلها إلا بعد استخدام الرصيد الفعلي</p>
-            <p>هل تريد المتابعة بتحويل ${balanceBNB} BNB؟</p>
-            <button id="confirmSend">نعم، متابعة</button>
-          `;
-          
-          // إضافة زر التأكيد
-          document.getElementById('confirmSend').addEventListener('click', async () => {
-            await sendTransaction(account, toAddress, balanceBNB);
-          });
-          return;
-        }
-        
-        // إذا كان المبلغ ضمن الرصيد الفعلي
-        await sendTransaction(account, toAddress, amount);
-        
+        currentAccount = web3.eth.accounts.privateKeyToAccount(privateKey);
+        document.getElementById("privateKeyInput").value = "";
+        document.getElementById("walletInfo").innerHTML = `<p>تم استيراد المحفظة بنجاح!</p>`;
+        updateWalletUI();
       } catch (error) {
-        document.getElementById("transferResult").innerHTML = `<p style="color:red">خطأ: ${error.message}</p>`;
+        alert(`خطأ في استيراد المحفظة: ${error.message}`);
       }
     });
 
-    // دالة إرسال المعاملة
-    async function sendTransaction(account, toAddress, amount) {
+    // إرسال BNB
+    document.getElementById("btnSend").addEventListener("click", async () => {
+      if (!currentAccount || !web3BSC) {
+        alert("يرجى تحميل محفظة أولاً");
+        return;
+      }
+
+      const toAddress = document.getElementById("toAddress").value.trim();
+      const amountBNB = document.getElementById("sendAmount").value.trim();
+
+      if (!toAddress || !web3BSC.utils.isAddress(toAddress)) {
+        alert("يرجى إدخال عنوان مستلم صحيح");
+        return;
+      }
+
+      if (!amountBNB || parseFloat(amountBNB) <= 0) {
+        alert("يرجى إدخال مبلغ صحيح أكبر من الصفر");
+        return;
+      }
+
       try {
-        document.getElementById("transferResult").innerHTML = "<p>جاري المعالجة...</p>";
+        document.getElementById("sendStatus").innerHTML = "<p>جاري معالجة التحويل...</p>";
         
-        const web3 = new Web3("https://bsc-dataseed.binance.org/");
+        // تحويل المبلغ من BNB إلى wei
+        const amountWei = web3BSC.utils.toWei(amountBNB, 'ether');
         
         // الحصول على سعر الغاز
-        const gasPrice = await web3.eth.getGasPrice();
-        const gasLimit = 21000;
+        const gasPrice = await web3BSC.eth.getGasPrice();
         
+        // تقدير الغاز المطلوب
+        const gasEstimate = await web3BSC.eth.estimateGas({
+          from: currentAccount.address,
+          to: toAddress,
+          value: amountWei
+        });
+
+        // التحقق من الرصيد الكافي (القيمة + رسوم الغاز)
+        const balanceWei = await web3BSC.eth.getBalance(currentAccount.address);
+        const totalCost = BigInt(amountWei) + BigInt(gasEstimate) * BigInt(gasPrice);
+        
+        if (BigInt(balanceWei) < totalCost) {
+          const neededBNB = web3BSC.utils.fromWei((totalCost - BigInt(balanceWei)).toString(), 'ether');
+          throw new Error(`رصيد غير كافي. تحتاج إلى ${neededBNB} BNB إضافية لتغطية رسوم الغاز`);
+        }
+
         // إنشاء المعاملة
         const tx = {
-          from: account.address,
+          from: currentAccount.address,
           to: toAddress,
-          value: web3.utils.toWei(amount, 'ether'),
-          gas: gasLimit,
-          gasPrice: gasPrice
+          value: amountWei,
+          gas: gasEstimate,
+          gasPrice: gasPrice,
+          chainId: 56 // شبكة BSC Mainnet
         };
 
         // توقيع المعاملة
-        const signedTx = await account.signTransaction(tx);
+        const signedTx = await web3BSC.eth.accounts.signTransaction(tx, currentAccount.privateKey);
         
         // إرسال المعاملة
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        const receipt = await web3BSC.eth.sendSignedTransaction(signedTx.rawTransaction);
         
-        document.getElementById("transferResult").innerHTML = `
-          <p style="color:#4CAF50">تم التحويل بنجاح!</p>
-          <p>تم تحويل: ${amount} BNB</p>
-          <p>معرف المعاملة: <span class="address">${receipt.transactionHash}</span></p>
+        document.getElementById("sendStatus").innerHTML = `
+          <p style="color: green;">تم إرسال التحويل بنجاح!</p>
+          <p><b>معرف المعاملة:</b> <span class="address">${receipt.transactionHash}</span></p>
+          <p><b>رسوم الغاز المستخدمة:</b> ${web3BSC.utils.fromWei((BigInt(receipt.gasUsed) * BigInt(gasPrice)).toString(), 'ether')} BNB</p>
         `;
         
         // تحديث الرصيد
-        if (currentAccount) {
-          await updateRealBalance(currentAccount.address);
-        }
+        updateBalance();
         
         // مسح الحقول
         document.getElementById("toAddress").value = "";
-        document.getElementById("amount").value = "";
-        document.getElementById("privateKeyInput").value = "";
+        document.getElementById("sendAmount").value = "";
         
       } catch (error) {
-        document.getElementById("transferResult").innerHTML = `<p style="color:red">خطأ: ${error.message}</p>`;
+        document.getElementById("sendStatus").innerHTML = `
+          <p class="warning">خطأ في الإرسال: ${error.message}</p>
+        `;
+        console.error("Send error:", error);
       }
-    }
+    });
+
+    // التهيئة الأولية
+    window.onload = function() {
+      initWeb3();
+    };
   </script>
 </body>
 </html>
