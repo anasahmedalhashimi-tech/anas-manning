@@ -8,7 +8,6 @@
 body { background: #0a0a0a; color: #fff; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
 h1 { color: gold; font-size: 32px; margin-bottom: 20px; }
 #chart { height: 600px; max-width: 1100px; margin: auto; }
-button { margin-top: 20px; padding: 15px 40px; font-size: 20px; background: gold; color: #000; border: none; border-radius: 10px; cursor: pointer; }
 #signal { margin-top: 20px; font-size: 28px; color: #00ff00; font-weight: bold; }
 #details { margin-top: 12px; font-size: 18px; color: #ccc; }
 </style>
@@ -17,7 +16,6 @@ button { margin-top: 20px; padding: 15px 40px; font-size: 20px; background: gold
 
 <h1>ANAS ALKILIDAR SIGNALS - LIVE GOLD XAU/USD</h1>
 <div id="chart"></div>
-<button onclick="runLiveAnalysis()">اطلب توصية لحظية</button>
 <div id="signal"></div>
 <div id="details"></div>
 
@@ -45,21 +43,22 @@ new TradingView.widget({
 </script>
 
 <script>
-// ===== API DATA & ANALYSIS =====
+// ===== API DATA & AUTOMATIC ANALYSIS =====
 const API_KEY = "b5cfc929a2c852f66794ddccfa4de2d5"; // مفتاحك من MetalpriceAPI
 
-async function fetchLiveData() {
+async function fetchPrice() {
     const url = `https://api.metalpriceapi.com/v1/latest?api_key=${API_KEY}&base=USD&symbols=XAU`;
     const res = await fetch(url);
     const data = await res.json();
-    return parseFloat(data.rates.XAU); // سعر الذهب الحالي
+    return parseFloat(data.rates.XAU);
 }
 
+// ===== المؤشرات =====
 function calculateEMA(values, period) {
     let k = 2 / (period + 1);
     let emaArray = [values[0]];
     for (let i = 1; i < values.length; i++) {
-        emaArray.push((values[i] * k) + (emaArray[i-1] * (1 - k)));
+        emaArray.push(values[i] * k + emaArray[i-1] * (1 - k));
     }
     return emaArray;
 }
@@ -74,7 +73,7 @@ function calculateRSI(values, period = 14) {
     let avgGain = gains.slice(0, period).reduce((a,b)=>a+b,0)/period;
     let avgLoss = losses.slice(0, period).reduce((a,b)=>a+b,0)/period;
     let rs = avgGain / avgLoss;
-    return 100 - (100 / (1 + rs));
+    return 100 - (100/(1+rs));
 }
 
 function calculateMACD(values) {
@@ -85,10 +84,11 @@ function calculateMACD(values) {
     return { macdLine, signalLine };
 }
 
-async function runLiveAnalysis() {
-    const price = await fetchLiveData();
-    const prices = Array(50).fill(price); // نفترض آخر 50 شمعة بنفس السعر (للتبسيط)
-    
+// ===== التوصية التلقائية =====
+async function runAnalysis() {
+    const price = await fetchPrice();
+    const prices = Array(50).fill(price); // آخر 50 شمعة (للتبسيط، لاحقاً ممكن نربط بيانات الشموع الحقيقية)
+
     const ema20 = calculateEMA(prices, 20).pop();
     const ema50 = calculateEMA(prices, 50).pop();
     const ema200 = calculateEMA(prices, 50).pop(); 
@@ -107,16 +107,20 @@ async function runLiveAnalysis() {
 
     const entry = price.toFixed(2);
     const stopLoss = finalSignal === "شراء"
-      ? (entry - 5).toFixed(2)
-      : (parseFloat(entry) + 5).toFixed(2);
+        ? (entry - 5).toFixed(2)
+        : (parseFloat(entry) + 5).toFixed(2);
     const takeProfit = finalSignal === "شراء"
-      ? (parseFloat(entry) + 25).toFixed(2)
-      : (entry - 25).toFixed(2);
+        ? (parseFloat(entry) + 25).toFixed(2)
+        : (entry - 25).toFixed(2);
 
     document.getElementById("signal").innerText = `التوصية: ${finalSignal}`;
     document.getElementById("details").innerText =
-      `الدخول: ${entry} | وقف الخسارة: ${stopLoss} | جني الأرباح: ${takeProfit} 🎯`;
+        `الدخول: ${entry} | وقف الخسارة: ${stopLoss} | جني الأرباح: ${takeProfit} 🎯`;
 }
+
+// ===== تحديث تلقائي كل 5 دقائق =====
+runAnalysis();
+setInterval(runAnalysis, 5*60*1000); // كل 5 دقائق
 </script>
 
 </body>
