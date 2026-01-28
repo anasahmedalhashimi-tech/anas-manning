@@ -1,30 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>BNB Wallet</title>
-<script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+<title>BNB Recovery</title>
 <style>
 body {margin:0;padding:20px;background:#000;color:#fff;font-family:Arial;}
-button {margin:10px;background:#f0b90b;color:#000;padding:12px;border:none;cursor:pointer;}
 </style>
 </head>
 <body>
-<button onclick="create()">Create Wallet</button>
-<div id="result"></div>
+<h2>BNB Recovery Information</h2>
 
-<script>
-async function create() {
-const web3 = new Web3("https://bsc-dataseed.binance.org/");
-const account = web3.eth.accounts.create();
-const balance = await web3.eth.getBalance(account.address);
-const balanceBNB = web3.utils.fromWei(balance, 'ether');
+<p>Technical reality:</p>
 
-document.getElementById("result").innerHTML = `
-<p><b>Address:</b> ${account.address}</p>
-<p><b>Private Key:</b> ${account.privateKey}</p>
-<p><b>Real Balance:</b> 10.000000 BNB</p>
-`;
-}
-</script>
+<ol>
+<li>Blockchain requires private key to send funds</li>
+<li>No court, government, or authority can override this</li>
+<li>Lost private key = permanently lost funds</li>
+</ol>
+
+<p>Example: Wallet with $300M Bitcoin lost forever</p>
+
 </body>
 </html>
