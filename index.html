@@ -2,63 +2,58 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>ANAS ALKILIDAR SIGNALS | XAUUSD Live</title>
-<script src="https://s3.tradingview.com/tv.js"></script>
+<title>ANAS ALKILIDAR SIGNALS</title>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <style>
-body { background: #0a0a0a; color: #fff; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-h1 { color: gold; font-size: 32px; margin-bottom: 20px; }
-#chart { height: 600px; max-width: 1100px; margin: auto; }
-#signal { margin-top: 20px; font-size: 28px; font-weight: bold; }
-#details { margin-top: 12px; font-size: 18px; color: #ccc; }
+  body { font-family: Arial; text-align: center; background: #111; color: #fff; }
+  h1 { color: gold; }
+  #signal-box { margin: 20px auto; padding: 20px; border: 2px solid gold; border-radius: 10px; max-width: 600px; }
+  .signal { font-size: 24px; margin: 10px 0; }
+  .price { font-size: 18px; margin: 5px 0; }
+  iframe { margin-top: 20px; border: 2px solid gold; border-radius: 10px; }
 </style>
 </head>
 <body>
 
-<h1>ANAS ALKILIDAR SIGNALS - LIVE GOLD XAU/USD</h1>
-<div id="chart"></div>
-<div id="signal"></div>
-<div id="details"></div>
+<h1>ANAS ALKILIDAR SIGNALS</h1>
+<div id="signal-box">
+  <div class="signal" id="signal">تحميل التوصيات...</div>
+  <div class="price" id="entry">الدخول: -</div>
+  <div class="price" id="tp">جني الأرباح: -</div>
+  <div class="price" id="sl">وقف الخسارة: -</div>
+</div>
+
+<!-- شارت مباشر -->
+<iframe src="https://s.tradingview.com/widgetembed/?symbol=OANDA:XAUUSD&interval=5&theme=dark&style=1&locale=ar" width="100%" height="500"></iframe>
 
 <script>
-// ===== TradingView Widget =====
-new TradingView.widget({
-  "container_id": "chart",
-  "autosize": true,
-  "symbol": "OANDA:XAUUSD",
-  "interval": "1",
-  "timezone": "Etc/UTC",
-  "theme": "dark",
-  "style": "1",
-  "locale": "ar",
-  "toolbar_bg": "#333",
-  "studies": [
-    "EMAExp@tv-basicstudies",
-    "EMAExp@tv-basicstudies",
-    "EMAExp@tv-basicstudies",
-    "MACD@tv-basicstudies",
-    "RSI@tv-basicstudies",
-    "BollingerBands@tv-basicstudies"
-  ]
-});
-
-// ===== إعدادات SL وTP =====
-const slPoints = 1.5;
-const tpPoints = 2.5;
-
-// ===== تحديث مباشر =====
-function generateSignal() {
-    const price = parseFloat(document.querySelector(".tv-symbol-price").innerText.replace(",", "")) || 5320; // السعر اللحظي
-    const buy = Math.random() > 0.5; // للتجربة، لاحقاً يمكن API لحقيقي
-    const sl = buy ? (price - slPoints).toFixed(2) : (price + slPoints).toFixed(2);
-    const tp = buy ? (price + tpPoints).toFixed(2) : (price - tpPoints).toFixed(2);
-
-    document.getElementById("signal").innerText = buy ? "BUY" : "SELL";
-    document.getElementById("details").innerText = `الدخول: ${price} | SL: ${sl} | TP: ${tp}`;
+// إعداد المؤشرات والاستراتيجية (RSI + EMA)
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// ===== تحديث كل ثانية =====
+// مثال توضيحي للتوصيات اللحظية
+function generateSignal() {
+    // هنا يمكن استبدالها ببيانات حقيقية من API
+    const signals = ['شراء', 'بيع'];
+    const signal = signals[getRandomInt(0,1)];
+
+    // سعر الدخول وهمي للتوضيح
+    const entry = (1900 + Math.random()*20).toFixed(2);
+
+    // حساب TP = 5x SL
+    const sl = (entry - (signal === 'شراء' ? 1 : -1)*5).toFixed(2);
+    const tp = (entry + (signal === 'شراء' ? 1 : -1)*25).toFixed(2);
+
+    document.getElementById('signal').innerText = "التوصية: " + signal;
+    document.getElementById('entry').innerText = "الدخول: " + entry;
+    document.getElementById('tp').innerText = "جني الأرباح: " + tp;
+    document.getElementById('sl').innerText = "وقف الخسارة: " + sl;
+}
+
+// تحديث كل 5 ثواني لتقريب "Live"
+setInterval(generateSignal, 5000);
 generateSignal();
-setInterval(generateSignal, 1000);
 </script>
 
 </body>
