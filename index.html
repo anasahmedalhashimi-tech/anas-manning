@@ -4,220 +4,517 @@
   <title>BNB Wallet Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
-    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 20px; }
-    .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 600px; }
-    .address { color: #ffd700; word-break: break-all; }
-    .section { margin: 20px 0; padding: 15px; border: 1px solid #333; }
-    input { width: 90%; padding: 10px; margin: 10px 0; background: #222; color: white; border: 1px solid #444; }
-    button { padding: 10px 20px; margin: 5px; background: #f0b90b; color: black; border: none; cursor: pointer; }
-    button:disabled { background: #666; cursor: not-allowed; }
-    .warning { color: #ff6b6b; font-weight: bold; }
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #000; 
+      color: #fff; 
+      text-align: center; 
+      padding-top: 20px; 
+      margin: 0;
+    }
+    
+    h1 {
+      color: #ffd700;
+      margin-bottom: 30px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .box {
+      margin: 20px auto;
+      padding: 25px;
+      border: 2px solid #444;
+      border-radius: 10px;
+      width: 100%;
+      background: #111;
+      box-sizing: border-box;
+    }
+    
+    .address {
+      color: #ffd700;
+      word-break: break-all;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    
+    .balance {
+      color: #4CAF50;
+      font-size: 24px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+    
+    .section-title {
+      color: #ffd700;
+      border-bottom: 1px solid #444;
+      padding-bottom: 10px;
+      margin-top: 30px;
+      text-align: left;
+    }
+    
+    .form-group {
+      margin: 20px 0;
+      text-align: left;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #ccc;
+    }
+    
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 5px;
+      border: 1px solid #444;
+      background: #222;
+      color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    
+    .btn {
+      background: linear-gradient(to right, #f0b90b, #ffd700);
+      color: #000;
+      border: none;
+      padding: 14px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 5px;
+      width: 100%;
+      transition: all 0.3s;
+    }
+    
+    .btn:hover {
+      background: linear-gradient(to right, #ffd700, #f0b90b);
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background: #333;
+      color: #fff;
+    }
+    
+    .btn-secondary:hover {
+      background: #444;
+    }
+    
+    .warning {
+      color: #ff9800;
+      background: rgba(255, 152, 0, 0.1);
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      text-align: center;
+      border-left: 4px solid #ff9800;
+    }
+    
+    .success {
+      color: #4CAF50;
+      background: rgba(76, 175, 80, 0.1);
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      text-align: center;
+      border-left: 4px solid #4CAF50;
+    }
+    
+    .error {
+      color: #f44336;
+      background: rgba(244, 67, 54, 0.1);
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      text-align: center;
+      border-left: 4px solid #f44336;
+    }
+    
+    .gas-info {
+      background: #222;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+      color: #aaa;
+      font-size: 14px;
+    }
+    
+    .buttons-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .tab {
+      overflow: hidden;
+      background-color: #111;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .tab button {
+      background-color: inherit;
+      color: #fff;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 20px;
+      transition: 0.3s;
+      font-size: 16px;
+      border-bottom: 3px solid transparent;
+    }
+    
+    .tab button:hover {
+      background-color: #222;
+    }
+    
+    .tab button.active {
+      border-bottom: 3px solid #f0b90b;
+      color: #ffd700;
+    }
+    
+    .tab-content {
+      display: none;
+      animation: fadeEffect 0.5s;
+    }
+    
+    @keyframes fadeEffect {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+    
+    .wallet-info {
+      text-align: left;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .box {
+        padding: 15px;
+      }
+      
+      .buttons-container {
+        flex-direction: column;
+      }
+      
+      .btn {
+        margin: 5px 0;
+      }
+    }
   </style>
 </head>
 <body>
-
-  <h1>BNB Wallet Generator</h1>
-
-  <div class="box">
-    <!-- إنشاء محفظة -->
-    <div class="section">
-      <h3>إنشاء محفظة جديدة</h3>
-      <button id="btnCreate">إنشاء محفظة جديدة</button>
-      <div id="walletInfo"></div>
+  <div class="container">
+    <h1>BNB Wallet Generator</h1>
+    
+    <div class="tab">
+      <button class="tablinks active" onclick="openTab(event, 'generate')">إنشاء محفظة</button>
+      <button class="tablinks" onclick="openTab(event, 'send')">إرسال BNB</button>
+      <button class="tablinks" onclick="openTab(event, 'receive')">استلام BNB</button>
     </div>
-
-    <!-- استيراد محفظة -->
-    <div class="section">
-      <h3>استيراد محفظة موجودة</h3>
-      <input type="text" id="privateKeyInput" placeholder="Private Key (0x...)">
-      <button id="btnImport">استيراد المحفظة</button>
+    
+    <div id="generate" class="tab-content" style="display: block;">
+      <div class="box">
+        <div class="warning">
+          ⚠️ المفتاح الخاص هو مسؤوليتك وحدك. احتفظ به في مكان آمن ولا تشاركه مع أحد.
+        </div>
+        
+        <button id="btn" class="btn">إنشاء محفظة جديدة</button>
+        
+        <div id="result"></div>
+        
+        <div id="balanceInfo" style="display: none;">
+          <div class="balance" id="balanceDisplay"></div>
+          
+          <div class="buttons-container">
+            <button id="sendBtn" class="btn" onclick="openTab(event, 'send')">إرسال BNB</button>
+            <button id="receiveBtn" class="btn btn-secondary" onclick="openTab(event, 'receive')">استلام BNB</button>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- إرسال BNB -->
-    <div class="section">
-      <h3>إرسال BNB</h3>
-      <input type="text" id="toAddress" placeholder="عنوان المستلم (0x...)">
-      <input type="number" id="sendAmount" placeholder="المبلغ (BNB)" step="0.0001" min="0">
-      <button id="btnSend" disabled>إرسال BNB</button>
-      <div id="sendStatus"></div>
+    
+    <div id="send" class="tab-content">
+      <div class="box">
+        <h3 class="section-title">إرسال BNB</h3>
+        
+        <div class="form-group">
+          <label>العنوان المرسل منه:</label>
+          <input type="text" id="fromAddress" readonly>
+        </div>
+        
+        <div class="form-group">
+          <label>العنوان المرسل إليه:</label>
+          <input type="text" id="toAddress" placeholder="أدخل عنوان محفظة BNB الهدف">
+        </div>
+        
+        <div class="form-group">
+          <label>كمية BNB للإرسال:</label>
+          <input type="number" id="sendAmount" placeholder="أدخل المبلغ" min="0.001" max="5" step="0.001">
+          <div class="gas-info">الحد الأقصى للرصيد المتاح: <span id="maxBalance">0</span> BNB</div>
+        </div>
+        
+        <div class="form-group">
+          <label>رسوم الغاز (GWEI):</label>
+          <input type="number" id="gasPrice" value="5" min="1" max="20" step="0.1">
+          <div class="gas-info">رسوم الغاز المقدرة: <span id="estimatedGas">0.00042</span> BNB</div>
+        </div>
+        
+        <div id="sendResult"></div>
+        
+        <button id="sendTransactionBtn" class="btn">إرسال المعاملة</button>
+        <button class="btn btn-secondary" onclick="openTab(event, 'generate')">رجوع</button>
+      </div>
     </div>
-
-    <!-- معلومات المحفظة -->
-    <div class="section">
-      <h3>معلومات المحفظة الحالية</h3>
-      <div id="currentWallet">لم يتم تحميل محفظة بعد</div>
-      <div id="balanceInfo"></div>
+    
+    <div id="receive" class="tab-content">
+      <div class="box">
+        <h3 class="section-title">استلام BNB</h3>
+        
+        <div class="wallet-info">
+          <p><b>عنوان محفظتك:</b></p>
+          <p class="address" id="receiveAddress"></p>
+          <p>شارك هذا العنوان لإرسال BNB إليك</p>
+        </div>
+        
+        <div class="form-group">
+          <label>كمية BNB الاستلام التجريبية (وهمية):</label>
+          <input type="number" id="receiveAmount" placeholder="أدخل المبلغ" min="0.001" max="5" step="0.001" value="1">
+        </div>
+        
+        <div id="receiveResult"></div>
+        
+        <button id="simulateReceiveBtn" class="btn">محاكاة استلام BNB</button>
+        <button class="btn btn-secondary" onclick="openTab(event, 'generate')">رجوع</button>
+      </div>
     </div>
   </div>
 
   <script>
+    // المتغيرات العامة
     let currentAccount = null;
     let web3BSC = null;
-    let web3 = null;
-
+    let simulatedBalance = 0;
+    const INITIAL_BALANCE = 5; // رصيد ابتدائي وهمي 5 BNB
+    
     // تهيئة Web3
-    function initWeb3() {
-      if (typeof Web3 === "undefined") {
-        alert("Error: web3 library not loaded.");
-        return false;
-      }
-      web3 = new Web3();
+    if (typeof Web3 !== "undefined") {
       web3BSC = new Web3("https://bsc-dataseed.binance.org/");
-      return true;
     }
-
-    // تحديث واجهة المحفظة
-    function updateWalletUI() {
-      if (!currentAccount) {
-        document.getElementById("currentWallet").innerHTML = "لم يتم تحميل محفظة بعد";
-        document.getElementById("btnSend").disabled = true;
+    
+    // وظيفة فتح التبويبات
+    function openTab(evt, tabName) {
+      const tabcontent = document.getElementsByClassName("tab-content");
+      for (let i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      
+      const tablinks = document.getElementsByClassName("tablinks");
+      for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      
+      document.getElementById(tabName).style.display = "block";
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.className += " active";
+      }
+      
+      // تحديث المعلومات عند تغيير التبويب
+      if (tabName === 'send' && currentAccount) {
+        document.getElementById('fromAddress').value = currentAccount.address;
+        document.getElementById('maxBalance').textContent = simulatedBalance.toFixed(6);
+      } else if (tabName === 'receive' && currentAccount) {
+        document.getElementById('receiveAddress').textContent = currentAccount.address;
+      }
+    }
+    
+    // إنشاء المحفظة
+    document.getElementById("btn").addEventListener("click", async () => {
+      if (typeof Web3 === "undefined") {
+        document.getElementById("result").innerHTML = '<div class="error">Error: web3 library not loaded.</div>';
         return;
       }
-
-      document.getElementById("currentWallet").innerHTML = `
-        <p><b>Address:</b> <span class="address">${currentAccount.address}</span></p>
-        <p><b>Private Key:</b> <span class="address">${currentAccount.privateKey}</span></p>
-        <p class="warning">⚠️ لا تشارك المفتاح الخاص مع أي شخص ⚠️</p>
-      `;
       
-      document.getElementById("btnSend").disabled = false;
-      updateBalance();
-    }
-
-    // تحديث الرصيد
-    async function updateBalance() {
-      if (!currentAccount || !web3BSC) return;
-      
-      try {
-        const balanceWei = await web3BSC.eth.getBalance(currentAccount.address);
-        const balanceBNB = web3BSC.utils.fromWei(balanceWei, "ether");
-        document.getElementById("balanceInfo").innerHTML = `
-          <p><b>الرصيد:</b> ${balanceBNB} BNB</p>
-          <p><b>الرصيد بالوي:</b> ${balanceWei} wei</p>
-        `;
-      } catch (error) {
-        document.getElementById("balanceInfo").innerHTML = `<p class="warning">خطأ في جلب الرصيد: ${error.message}</p>`;
-      }
-    }
-
-    // إنشاء محفظة جديدة
-    document.getElementById("btnCreate").addEventListener("click", async () => {
-      if (!initWeb3()) return;
-      
+      // إنشاء محفظة
+      const web3 = new Web3();
       currentAccount = web3.eth.accounts.create();
-      document.getElementById("walletInfo").innerHTML = `
-        <p>تم إنشاء محفظة جديدة بنجاح!</p>
+      simulatedBalance = INITIAL_BALANCE; // تعيين رصيد وهمي 5 BNB
+      
+      document.getElementById("result").innerHTML = `
+        <div class="wallet-info">
+          <p><b>العنوان:</b></p>
+          <p class="address">${currentAccount.address}</p>
+          <p><b>المفتاح الخاص:</b></p>
+          <p class="address">${currentAccount.privateKey}</p>
+          <div class="warning">
+            ⚠️ احفظ المفتاح الخاص في مكان آمن. لا تشاركه مع أحد.
+          </div>
+        </div>
       `;
-      updateWalletUI();
-    });
-
-    // استيراد محفظة
-    document.getElementById("btnImport").addEventListener("click", async () => {
-      const privateKey = document.getElementById("privateKeyInput").value.trim();
       
-      if (!privateKey || !privateKey.startsWith('0x')) {
-        alert("يرجى إدخال مفتاح خاص صحيح يبدأ بـ 0x");
-        return;
-      }
-
-      if (!initWeb3()) return;
-      
+      // الحصول على الرصيد الفعلي من الشبكة (إن وجد)
       try {
-        currentAccount = web3.eth.accounts.privateKeyToAccount(privateKey);
-        document.getElementById("privateKeyInput").value = "";
-        document.getElementById("walletInfo").innerHTML = `<p>تم استيراد المحفظة بنجاح!</p>`;
-        updateWalletUI();
-      } catch (error) {
-        alert(`خطأ في استيراد المحفظة: ${error.message}`);
-      }
-    });
-
-    // إرسال BNB
-    document.getElementById("btnSend").addEventListener("click", async () => {
-      if (!currentAccount || !web3BSC) {
-        alert("يرجى تحميل محفظة أولاً");
-        return;
-      }
-
-      const toAddress = document.getElementById("toAddress").value.trim();
-      const amountBNB = document.getElementById("sendAmount").value.trim();
-
-      if (!toAddress || !web3BSC.utils.isAddress(toAddress)) {
-        alert("يرجى إدخال عنوان مستلم صحيح");
-        return;
-      }
-
-      if (!amountBNB || parseFloat(amountBNB) <= 0) {
-        alert("يرجى إدخال مبلغ صحيح أكبر من الصفر");
-        return;
-      }
-
-      try {
-        document.getElementById("sendStatus").innerHTML = "<p>جاري معالجة التحويل...</p>";
-        
-        // تحويل المبلغ من BNB إلى wei
-        const amountWei = web3BSC.utils.toWei(amountBNB, 'ether');
-        
-        // الحصول على سعر الغاز
-        const gasPrice = await web3BSC.eth.getGasPrice();
-        
-        // تقدير الغاز المطلوب
-        const gasEstimate = await web3BSC.eth.estimateGas({
-          from: currentAccount.address,
-          to: toAddress,
-          value: amountWei
-        });
-
-        // التحقق من الرصيد الكافي (القيمة + رسوم الغاز)
-        const balanceWei = await web3BSC.eth.getBalance(currentAccount.address);
-        const totalCost = BigInt(amountWei) + BigInt(gasEstimate) * BigInt(gasPrice);
-        
-        if (BigInt(balanceWei) < totalCost) {
-          const neededBNB = web3BSC.utils.fromWei((totalCost - BigInt(balanceWei)).toString(), 'ether');
-          throw new Error(`رصيد غير كافي. تحتاج إلى ${neededBNB} BNB إضافية لتغطية رسوم الغاز`);
+        if (web3BSC) {
+          const balanceWei = await web3BSC.eth.getBalance(currentAccount.address);
+          const balanceBNB = web3BSC.utils.fromWei(balanceWei, "ether");
+          
+          document.getElementById("result").innerHTML += `
+            <p><b>الرصيد الحقيقي على الشبكة:</b> ${parseFloat(balanceBNB).toFixed(6)} BNB</p>
+          `;
         }
-
-        // إنشاء المعاملة
-        const tx = {
-          from: currentAccount.address,
-          to: toAddress,
-          value: amountWei,
-          gas: gasEstimate,
-          gasPrice: gasPrice,
-          chainId: 56 // شبكة BSC Mainnet
-        };
-
-        // توقيع المعاملة
-        const signedTx = await web3BSC.eth.accounts.signTransaction(tx, currentAccount.privateKey);
+      } catch (error) {
+        console.log("Error fetching real balance:", error);
+      }
+      
+      // عرض الرصيد الوهمي
+      document.getElementById("balanceInfo").style.display = "block";
+      document.getElementById("balanceDisplay").textContent = `${simulatedBalance.toFixed(6)} BNB`;
+      
+      // تحديث معلومات التبويبات
+      document.getElementById('fromAddress').value = currentAccount.address;
+      document.getElementById('receiveAddress').textContent = currentAccount.address;
+      document.getElementById('maxBalance').textContent = simulatedBalance.toFixed(6);
+    });
+    
+    // إرسال BNB
+    document.getElementById("sendTransactionBtn").addEventListener("click", async () => {
+      const toAddress = document.getElementById("toAddress").value.trim();
+      const sendAmount = parseFloat(document.getElementById("sendAmount").value);
+      const gasPrice = parseFloat(document.getElementById("gasPrice").value);
+      
+      document.getElementById("sendResult").innerHTML = "";
+      
+      // التحقق من الإدخال
+      if (!currentAccount) {
+        document.getElementById("sendResult").innerHTML = '<div class="error">يرجى إنشاء محفظة أولاً.</div>';
+        return;
+      }
+      
+      if (!toAddress || !toAddress.startsWith('0x') || toAddress.length !== 42) {
+        document.getElementById("sendResult").innerHTML = '<div class="error">عنوان الوجهة غير صالح.</div>';
+        return;
+      }
+      
+      if (!sendAmount || isNaN(sendAmount) || sendAmount <= 0) {
+        document.getElementById("sendResult").innerHTML = '<div class="error">يرجى إدخال مبلغ صالح للإرسال.</div>';
+        return;
+      }
+      
+      if (sendAmount > simulatedBalance - 0.001) {
+        document.getElementById("sendResult").innerHTML = `<div class="error">الرصيد غير كافٍ. لديك ${simulatedBalance.toFixed(6)} BNB فقط.</div>`;
+        return;
+      }
+      
+      // حساب رسوم الغاز
+      const estimatedGas = 21000; // غاز أساسي للمعاملة
+      const gasCostWei = web3BSC.utils.toWei((estimatedGas * gasPrice / 1000000000).toFixed(9), 'ether');
+      const gasCostBNB = parseFloat(web3BSC.utils.fromWei(gasCostWei, 'ether'));
+      
+      // التأكيد قبل الإرسال
+      const totalCost = sendAmount + gasCostBNB;
+      const confirmSend = confirm(`هل تريد إرسال ${sendAmount} BNB إلى ${toAddress.substring(0, 12)}...?\nرسوم الغاز: ${gasCostBNB.toFixed(6)} BNB\nالمجموع: ${totalCost.toFixed(6)} BNB`);
+      
+      if (!confirmSend) return;
+      
+      // محاكاة إرسال المعاملة
+      try {
+        // خصم المبلغ ورسوم الغاز من الرصيد الوهمي
+        simulatedBalance -= totalCost;
         
-        // إرسال المعاملة
-        const receipt = await web3BSC.eth.sendSignedTransaction(signedTx.rawTransaction);
+        // تحديث عرض الرصيد
+        document.getElementById("balanceDisplay").textContent = `${simulatedBalance.toFixed(6)} BNB`;
+        document.getElementById("maxBalance").textContent = simulatedBalance.toFixed(6);
         
-        document.getElementById("sendStatus").innerHTML = `
-          <p style="color: green;">تم إرسال التحويل بنجاح!</p>
-          <p><b>معرف المعاملة:</b> <span class="address">${receipt.transactionHash}</span></p>
-          <p><b>رسوم الغاز المستخدمة:</b> ${web3BSC.utils.fromWei((BigInt(receipt.gasUsed) * BigInt(gasPrice)).toString(), 'ether')} BNB</p>
+        // إنشاء تفاصيل المعاملة الوهمية
+        const txHash = "0x" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        
+        document.getElementById("sendResult").innerHTML = `
+          <div class="success">
+            ✅ تم إرسال المعاملة بنجاح!
+            <p>المبلغ: ${sendAmount} BNB</p>
+            <p>رسوم الغاز: ${gasCostBNB.toFixed(6)} BNB</p>
+            <p>إلى: ${toAddress.substring(0, 12)}...${toAddress.substring(38)}</p>
+            <p>رقم المعاملة: ${txHash.substring(0, 20)}...</p>
+            <p>الرصيد الجديد: ${simulatedBalance.toFixed(6)} BNB</p>
+          </div>
         `;
         
-        // تحديث الرصيد
-        updateBalance();
-        
-        // مسح الحقول
+        // تفريغ الحقول
         document.getElementById("toAddress").value = "";
         document.getElementById("sendAmount").value = "";
         
       } catch (error) {
-        document.getElementById("sendStatus").innerHTML = `
-          <p class="warning">خطأ في الإرسال: ${error.message}</p>
-        `;
-        console.error("Send error:", error);
+        document.getElementById("sendResult").innerHTML = `<div class="error">حدث خطأ: ${error.message}</div>`;
       }
     });
-
-    // التهيئة الأولية
-    window.onload = function() {
-      initWeb3();
-    };
+    
+    // محاكاة استلام BNB
+    document.getElementById("simulateReceiveBtn").addEventListener("click", async () => {
+      const receiveAmount = parseFloat(document.getElementById("receiveAmount").value);
+      
+      document.getElementById("receiveResult").innerHTML = "";
+      
+      if (!currentAccount) {
+        document.getElementById("receiveResult").innerHTML = '<div class="error">يرجى إنشاء محفظة أولاً.</div>';
+        return;
+      }
+      
+      if (!receiveAmount || isNaN(receiveAmount) || receiveAmount <= 0) {
+        document.getElementById("receiveResult").innerHTML = '<div class="error">يرجى إدخال مبلغ صالح.</div>';
+        return;
+      }
+      
+      if (receiveAmount > 5) {
+        document.getElementById("receiveResult").innerHTML = '<div class="error">الحد الأقصى للاستلام التجريبي هو 5 BNB.</div>';
+        return;
+      }
+      
+      // محاكاة استلام BNB
+      simulatedBalance += receiveAmount;
+      
+      // تحديث عرض الرصيد
+      document.getElementById("balanceDisplay").textContent = `${simulatedBalance.toFixed(6)} BNB`;
+      document.getElementById("maxBalance").textContent = simulatedBalance.toFixed(6);
+      
+      // إنشاء تفاصيل الاستلام الوهمية
+      const txHash = "0x" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const fromAddress = "0x" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
+      document.getElementById("receiveResult").innerHTML = `
+        <div class="success">
+          ✅ تم استلام ${receiveAmount} BNB بنجاح!
+          <p>من: ${fromAddress.substring(0, 12)}...${fromAddress.substring(38)}</p>
+          <p>رقم المعاملة: ${txHash.substring(0, 20)}...</p>
+          <p>الرصيد الجديد: ${simulatedBalance.toFixed(6)} BNB</p>
+        </div>
+      `;
+      
+      // تفريغ الحقل
+      document.getElementById("receiveAmount").value = "";
+    });
+    
+    // تحديث رسوم الغاز المقدرة
+    document.getElementById("gasPrice").addEventListener("input", function() {
+      const gasPrice = parseFloat(this.value) || 5;
+      const estimatedGas = 21000;
+      const gasCost = (estimatedGas * gasPrice) / 1000000000;
+      document.getElementById("estimatedGas").textContent = gasCost.toFixed(6);
+    });
   </script>
 </body>
 </html>
