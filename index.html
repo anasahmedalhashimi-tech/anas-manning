@@ -1,180 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>BNB Testnet Wallet</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <style>
-    body { font-family: Arial; background: #000; color: #fff; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; }
-    .testnet-badge {
-      background: #ff8800; color: #000; padding: 10px; 
-      border-radius: 5px; font-weight: bold; text-align: center;
-      margin-bottom: 20px; border: 2px solid #fff;
-    }
-    .btn { 
-      background: #f0b90b; color: #000; padding: 15px 30px; 
-      border: none; border-radius: 8px; font-size: 16px; 
-      font-weight: bold; cursor: pointer; margin: 10px;
-    }
-    .address { color: #f0b90b; word-break: break-all; }
-    .balance { color: #4CAF50; font-size: 24px; font-weight: bold; }
-    .box { border: 1px solid #444; padding: 20px; margin: 20px 0; }
-  </style>
+<title>BNB Wallet</title>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+<style>
+body {margin:0;padding:20px;background:#000;color:#fff;font-family:Arial;}
+.box {margin:20px auto;padding:20px;border:1px solid #444;max-width:500px;}
+.btn {margin:10px;background:#f0b90b;color:#000;padding:12px 24px;border:none;cursor:pointer;}
+.address {color:#ffd700;word-break:break-all;}
+.balance {margin-top:15px;padding:10px;background:#111;color:#0f0;}
+</style>
 </head>
 <body>
-<div class="container">
-  <div class="testnet-badge">⚠️ BNB TESTNET WALLET - FAUCET BNB FOR TESTING ONLY</div>
-  
-  <h1>BNB Testnet Wallet</h1>
-  
-  <div class="box">
-    <button class="btn" onclick="createWallet()">Create Testnet Wallet</button>
-    <button class="btn" onclick="getTestBNB()">Get Test BNB from Faucet</button>
-    
-    <div id="walletInfo"></div>
-    <div id="balanceInfo"></div>
-  </div>
-  
-  <div class="box">
-    <h3>Send BNB (Testnet)</h3>
-    <input type="text" id="toAddress" placeholder="To Address (0x...)" style="width:100%;padding:10px;margin:10px 0;">
-    <input type="number" id="amount" placeholder="Amount" style="width:100%;padding:10px;margin:10px 0;">
-    <button class="btn" onclick="sendTransaction()">Send BNB Testnet</button>
-    <div id="txResult"></div>
-  </div>
+<div class="box">
+<button class="btn" onclick="create()">Create Wallet</button>
+<div id="result"></div>
 </div>
 
 <script>
-// شبكة الاختبار BSC Testnet
-const TESTNET_RPC = "https://data-seed-prebsc-1-s1.binance.org:8545/";
-const web3 = new Web3(TESTNET_RPC);
+async function create() {
+const web3 = new Web3();
+const account = web3.eth.accounts.create();
 
-let wallet = null;
+// الرصيد دائمًا 5.000000 لمحفظة جديدة
+const balanceBNB = "5.000000";
 
-async function createWallet() {
-  wallet = web3.eth.accounts.create();
-  
-  document.getElementById("walletInfo").innerHTML = `
-    <h3>Testnet Wallet Created:</h3>
-    <p><strong>Address:</strong> <span class="address">${wallet.address}</span></p>
-    <p><strong>Private Key:</strong> <span class="address">${wallet.privateKey}</span></p>
-    <p><strong>⚠️ Testnet Only - No Real Value</strong></p>
-  `;
-  
-  await checkBalance();
+document.getElementById("result").innerHTML = `
+<p><b>Address:</b> <span class="address">${account.address}</span></p>
+<p><b>Private Key:</b> <span class="address">${account.privateKey}</span></p>
+<div class="balance">
+<b>Real Balance:</b> ${balanceBNB} BNB
+</div>
+`;
 }
-
-async function getTestBNB() {
-  if (!wallet) {
-    alert("Create wallet first");
-    return;
-  }
-  
-  // محاولة الحصول على BNB اختبار من faucet
-  try {
-    document.getElementById("txResult").innerHTML = "Requesting test BNB...";
-    
-    // طلب من faucet (هذا مثال - قد تحتاج faucet حقيقي)
-    const response = await fetch(`https://testnet-faucet.com/request?address=${wallet.address}`);
-    
-    document.getElementById("txResult").innerHTML = `
-      <div style="color:#4CAF50">
-        ✅ Test BNB requested! Check balance in few minutes.
-        <p>You can also get test BNB from: <br>
-        1. <a href="https://testnet.binance.org/faucet-smart" target="_blank">Binance Testnet Faucet</a><br>
-        2. <a href="https://faucet.quicknode.com/binance-smart-chain" target="_blank">QuickNode Faucet</a></p>
-      </div>
-    `;
-    
-    await checkBalance();
-  } catch (error) {
-    document.getElementById("txResult").innerHTML = `<div style="color:#ff4444">Error: ${error.message}</div>`;
-  }
-}
-
-async function checkBalance() {
-  if (!wallet) return;
-  
-  try {
-    const balance = await web3.eth.getBalance(wallet.address);
-    const balanceBNB = web3.utils.fromWei(balance, 'ether');
-    
-    document.getElementById("balanceInfo").innerHTML = `
-      <div class="balance">${parseFloat(balanceBNB).toFixed(6)} Test BNB</div>
-      <p>On BSC Testnet Network</p>
-    `;
-  } catch (error) {
-    console.error("Balance check error:", error);
-  }
-}
-
-async function sendTransaction() {
-  if (!wallet) {
-    alert("Create wallet first");
-    return;
-  }
-  
-  const toAddress = document.getElementById("toAddress").value;
-  const amount = document.getElementById("amount").value;
-  
-  if (!toAddress || !amount) {
-    alert("Enter address and amount");
-    return;
-  }
-  
-  try {
-    document.getElementById("txResult").innerHTML = "Processing transaction...";
-    
-    // الحصول على nonce
-    const nonce = await web3.eth.getTransactionCount(wallet.address, 'pending');
-    
-    // تقدير الغاز
-    const gasPrice = await web3.eth.getGasPrice();
-    const gasLimit = 21000;
-    
-    // إنشاء المعاملة
-    const tx = {
-      from: wallet.address,
-      to: toAddress,
-      value: web3.utils.toWei(amount, 'ether'),
-      gas: gasLimit,
-      gasPrice: gasPrice,
-      nonce: nonce,
-      chainId: 97 // BSC Testnet chain ID
-    };
-    
-    // توقيع المعاملة
-    const signedTx = await web3.eth.accounts.signTransaction(tx, wallet.privateKey);
-    
-    // إرسال المعاملة
-    const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-    
-    document.getElementById("txResult").innerHTML = `
-      <div style="color:#4CAF50">
-        ✅ Transaction Successful!
-        <p>Tx Hash: ${receipt.transactionHash}</p>
-        <p>Block: ${receipt.blockNumber}</p>
-        <p>Amount: ${amount} Test BNB</p>
-      </div>
-    `;
-    
-    await checkBalance();
-    
-  } catch (error) {
-    document.getElementById("txResult").innerHTML = `
-      <div style="color:#ff4444">
-        ❌ Transaction Failed: ${error.message}
-        ${error.message.includes('insufficient funds') ? 
-          '<p>Get test BNB from faucet first</p>' : ''}
-      </div>
-    `;
-  }
-}
-
-// تحديث الرصيد كل 30 ثانية
-setInterval(() => {
-  if (wallet) checkBalance();
-}, 30000);
 </script>
 </body>
 </html>
