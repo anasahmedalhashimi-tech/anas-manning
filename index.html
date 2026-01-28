@@ -41,25 +41,24 @@ new TradingView.widget({
   ]
 });
 
-// ===== تحليل وتوصية لحظية =====
-function getRandomPrice(min, max) {
-    return (Math.random()*(max-min)+min).toFixed(2);
-}
+// ===== إعدادات SL وTP =====
+const slPoints = 1.5;
+const tpPoints = 2.5;
 
-// ===== مبدئي لحساب SL وTP =====
+// ===== تحديث مباشر =====
 function generateSignal() {
-    const price = getRandomPrice(5300, 5350); // مؤقت، لاحقاً ممكن API حقيقي
-    const buy = Math.random() > 0.5;
-    const sl = buy ? (price - 1.5).toFixed(2) : (parseFloat(price) + 1.5).toFixed(2);
-    const tp = buy ? (parseFloat(price) + 2.5).toFixed(2) : (price - 2.5).toFixed(2);
+    const price = parseFloat(document.querySelector(".tv-symbol-price").innerText.replace(",", "")) || 5320; // السعر اللحظي
+    const buy = Math.random() > 0.5; // للتجربة، لاحقاً يمكن API لحقيقي
+    const sl = buy ? (price - slPoints).toFixed(2) : (price + slPoints).toFixed(2);
+    const tp = buy ? (price + tpPoints).toFixed(2) : (price - tpPoints).toFixed(2);
 
     document.getElementById("signal").innerText = buy ? "BUY" : "SELL";
     document.getElementById("details").innerText = `الدخول: ${price} | SL: ${sl} | TP: ${tp}`;
 }
 
-// ===== تحديث كل دقيقة =====
+// ===== تحديث كل ثانية =====
 generateSignal();
-setInterval(generateSignal, 60*1000);
+setInterval(generateSignal, 1000);
 </script>
 
 </body>
