@@ -1,125 +1,53 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>ANAS ALKILIDAR - XAUUSD</title>
-<meta charset="UTF-8">
-<style>
-body {
-    background: #000;
-    color: #fff;
-    font-family: Arial;
-    margin: 0;
-    padding: 20px;
-}
-.header {
-    text-align: center;
-    color: gold;
-    font-size: 32px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
-.price {
-    font-size: 48px;
-    text-align: center;
-    color: #0f0;
-    margin: 20px 0;
-    font-weight: bold;
-}
-.signal {
-    background: #111;
-    padding: 20px;
-    border: 2px solid gold;
-    border-radius: 10px;
-    margin: 20px 0;
-    display: none;
-}
-.btn {
-    background: gold;
-    color: #000;
-    border: none;
-    padding: 20px;
-    width: 100%;
-    font-size: 24px;
-    font-weight: bold;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-top: 20px;
-}
-</style>
-</head>
-<body>
+//@version=5
+strategy("ANAS ALKILIDAR SIGNALS — XAUUSD M5", overlay=true, calc_on_every_tick=true, initial_capital=100000, default_qty_type=strategy.percent_of_equity, default_qty_value=1)
 
-<div class="header">ANAS ALKILIDAR</div>
+// ====== SETTINGS ======
+rr = 5.0
+emaFastLen = 20
+emaSlowLen = 50
+rsiLen = 14
+atrLen = 14
+atrMultSL = 1.0
+sessionFilter = input.session("0000-2359", "Session")
 
-<div id="price" class="price">$--.--</div>
+// ====== DATA ======
+inSession = time(timeframe.period, sessionFilter)
+emaFast = ta.ema(close, emaFastLen)
+emaSlow = ta.ema(close, emaSlowLen)
+rsi = ta.rsi(close, rsiLen)
+atr = ta.atr(atrLen)
 
-<div id="signal" class="signal">
-    <div style="color:#0f0; font-size:24px; text-align:center;" id="action">BUY XAUUSD</div>
-    <div style="text-align:center; margin:15px 0; font-size:20px;">Entry: <span id="entry">--.--</span></div>
-    <div style="display:flex; justify-content:space-between; margin:20px 0;">
-        <div style="color:#0f0; text-align:center;">
-            <div>TP</div>
-            <div style="font-size:20px;" id="tp">--.--</div>
-        </div>
-        <div style="color:#f00; text-align:center;">
-            <div>SL</div>
-            <div style="font-size:20px;" id="sl">--.--</div>
-        </div>
-    </div>
-</div>
+// ====== TREND & MOMENTUM ======
+trendUp = emaFast > emaSlow and close > emaFast
+trendDn = emaFast < emaSlow and close < emaFast
+momentumUp = rsi > 50 and ta.crossover(rsi, 50)
+momentumDn = rsi < 50 and ta.crossunder(rsi, 50)
 
-<button class="btn" onclick="getSignal()">GET SIGNAL</button>
+// ====== ENTRIES ======
+longCond  = inSession and trendUp and momentumUp
+shortCond = inSession and trendDn and momentumDn
 
-<script>
-// REAL XAUUSD PRICE FROM TRADINGVIEW
-async function getLivePrice() {
-    try {
-        // TradingView API or similar
-        const response = await fetch('https://api.twelvedata.com/price?symbol=XAU/USD&apikey=demo');
-        const data = await response.json();
-        return parseFloat(data.price);
-    } catch(e) {
-        // Fallback API
-        const response = await fetch('https://api.frankfurter.app/latest?from=XAU&to=USD');
-        const data = await response.json();
-        return data.rates.USD;
-    }
-}
+// ====== RISK MANAGEMENT (1:5) ======
+longSL  = close - atr * atrMultSL
+longTP  = close + (atr * atrMultSL) * rr
+shortSL = close + atr * atrMultSL
+shortTP = close - (atr * atrMultSL) * rr
 
-async function updatePrice() {
-    const price = await getLivePrice();
-    document.getElementById('price').textContent = '$' + price.toFixed(2);
-}
+// ====== EXECUTION ======
+if (longCond)
+    strategy.entry("BUY", strategy.long)
+    strategy.exit("BUY EXIT", "BUY", stop=longSL, limit=longTP)
 
-async function getSignal() {
-    // Get current price
-    const currentPrice = await getLivePrice();
-    
-    // Professional signal (80% accuracy simulation)
-    const isBuy = Math.random() > 0.2; // 80% buy signals
-    const action = isBuy ? 'BUY' : 'SELL';
-    
-    // Entry price (better than market)
-    const entry = isBuy ? (currentPrice - 0.3).toFixed(2) : (currentPrice + 0.3).toFixed(2);
-    
-    // TP/SL with 1:5 ratio
-    const tp = isBuy ? (parseFloat(entry) + 10).toFixed(2) : (parseFloat(entry) - 10).toFixed(2);
-    const sl = isBuy ? (parseFloat(entry) - 2).toFixed(2) : (parseFloat(entry) + 2).toFixed(2);
-    
-    // Display
-    document.getElementById('action').textContent = action + ' XAUUSD';
-    document.getElementById('action').style.color = isBuy ? '#0f0' : '#f00';
-    document.getElementById('entry').textContent = '$' + entry;
-    document.getElementById('tp').textContent = '$' + tp;
-    document.getElementById('sl').textContent = '$' + sl;
-    
-    document.getElementById('signal').style.display = 'block';
-}
+if (shortCond)
+    strategy.entry("SELL", strategy.short)
+    strategy.exit("SELL EXIT", "SELL", stop=shortSL, limit=shortTP)
 
-// Update price every 3 seconds
-updatePrice();
-setInterval(updatePrice, 3000);
-</script>
+// ====== VISUALS ======
+plot(emaFast, color=color.new(color.green, 0), linewidth=2)
+plot(emaSlow, color=color.new(color.red, 0), linewidth=2)
+plotshape(longCond, title="BUY SIGNAL", style=shape.triangleup, location=location.belowbar, color=color.lime, size=size.small, text="BUY")
+plotshape(shortCond, title="SELL SIGNAL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
 
-</body>
-</html>
+// ====== ALERTS ======
+alertcondition(longCond, title="BUY ALERT", message="ANAS ALKILIDAR SIGNALS | BUY XAUUSD M5 | SL={{plot(\"longSL\")}} TP={{plot(\"longTP\")}}")
+alertcondition(shortCond, title="SELL ALERT", message="ANAS ALKILIDAR SIGNALS | SELL XAUUSD M5 | SL={{plot(\"shortSL\")}} TP={{plot(\"shortTP\")}}")
