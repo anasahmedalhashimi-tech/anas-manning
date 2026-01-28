@@ -8,9 +8,8 @@
 body { background: #0a0a0a; color: #fff; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
 h1 { color: gold; font-size: 32px; margin-bottom: 20px; }
 #chart { height: 600px; max-width: 1100px; margin: auto; }
-#signal { margin-top: 20px; font-size: 28px; color: #00ff00; font-weight: bold; }
+#signal { margin-top: 20px; font-size: 28px; font-weight: bold; }
 #details { margin-top: 12px; font-size: 18px; color: #ccc; }
-#profitloss { margin-top: 12px; font-size: 18px; color: #ffdd00; }
 </style>
 </head>
 <body>
@@ -19,11 +18,10 @@ h1 { color: gold; font-size: 32px; margin-bottom: 20px; }
 <div id="chart"></div>
 <div id="signal"></div>
 <div id="details"></div>
-<div id="profitloss"></div>
 
 <script>
 // ========= TradingView Live Chart =========
-new TradingView.widget({
+let widget = new TradingView.widget({
     "container_id": "chart",
     "autosize": true,
     "symbol": "OANDA:XAUUSD",
@@ -92,21 +90,20 @@ function calculateMACD(values) {
     return { macdLine, signalLine };
 }
 
-// ===== التوصية التلقائية =====
+// ===== التوصية التلقائية مع SL و TP =====
 async function runAnalysis() {
     const price = await fetchPrice();
     if (!price) {
         document.getElementById("signal").innerText = "خطأ في جلب السعر!";
         document.getElementById("details").innerText = "";
-        document.getElementById("profitloss").innerText = "";
         return;
     }
 
-    const prices = Array(50).fill(price);
+    const prices = Array(50).fill(price); // آخر 50 شمعة (يمكن تحديث لاحقًا ببيانات حقيقية)
 
     const ema20 = calculateEMA(prices, 20).pop();
     const ema50 = calculateEMA(prices, 50).pop();
-    const ema200 = calculateEMA(prices, 50).pop(); 
+    const ema200 = calculateEMA(prices, 50).pop();
     const rsi = calculateRSI(prices, 14);
     const macdData = calculateMACD(prices);
 
@@ -120,22 +117,16 @@ async function runAnalysis() {
     const buyCount = signals.filter(s => s === "شراء").length;
     const finalSignal = buyCount >= 3 ? "شراء" : "بيع";
 
+    // ===== الدخول المباشر =====
     const entry = price.toFixed(2);
-    const stopLoss = finalSignal === "شراء"
-        ? (entry - 5).toFixed(2)
-        : (parseFloat(entry) + 5).toFixed(2);
-    const takeProfit = finalSignal === "شراء"
-        ? (parseFloat(entry) + 25).toFixed(2)
-        : (entry - 25).toFixed(2);
 
-    const estimatedProfit = (finalSignal === "شراء" ? takeProfit - entry : entry - takeProfit).toFixed(2);
-    const estimatedLoss = (finalSignal === "شراء" ? entry - stopLoss : stopLoss - entry).toFixed(2);
+    // ===== وقف الخسارة وجني الأرباح =====
+    const sl = finalSignal === "شراء" ? (entry - 5).toFixed(2) : (parseFloat(entry) + 5).toFixed(2);
+    const tp = finalSignal === "شراء" ? (parseFloat(entry) + 25).toFixed(2) : (entry - 25).toFixed(2);
 
     document.getElementById("signal").innerText = `التوصية: ${finalSignal}`;
     document.getElementById("details").innerText =
-        `الدخول: ${entry} | وقف الخسارة: ${stopLoss} | جني الأرباح: ${takeProfit} 🎯`;
-    document.getElementById("profitloss").innerText =
-        `الربح المحتمل: ${estimatedProfit} | الخسارة المحتملة: ${estimatedLoss}`;
+        `الدخول: ${entry} | وقف الخسارة: ${sl} | جني الأرباح: ${tp} 🎯`;
 }
 
 // ===== تحديث تلقائي كل 5 دقائق =====
