@@ -3,57 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <title>ANAS ALKILIDAR SIGNALS</title>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <style>
-  body { font-family: Arial; text-align: center; background: #111; color: #fff; }
-  h1 { color: gold; }
-  #signal-box { margin: 20px auto; padding: 20px; border: 2px solid gold; border-radius: 10px; max-width: 600px; }
-  .signal { font-size: 24px; margin: 10px 0; }
-  .price { font-size: 18px; margin: 5px 0; }
-  iframe { margin-top: 20px; border: 2px solid gold; border-radius: 10px; }
+  body { font-family: Arial; background: #111; color: #fff; text-align: center; padding: 50px; }
+  h1 { color: gold; font-size: 40px; margin-bottom: 50px; }
+  #signal-box { border: 3px solid gold; border-radius: 20px; padding: 40px; max-width: 700px; margin: auto; background: #222; }
+  .signal { font-size: 48px; font-weight: bold; margin: 20px 0; color: #00ff41; }
+  .price { font-size: 32px; margin: 15px 0; }
+  button { font-size: 28px; padding: 15px 40px; border-radius: 15px; border: none; background: gold; color: #111; cursor: pointer; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+  button:hover { background: #ffbf00; }
+  iframe { margin-top: 50px; border: 3px solid gold; border-radius: 15px; }
 </style>
 </head>
 <body>
 
 <h1>ANAS ALKILIDAR SIGNALS</h1>
+
 <div id="signal-box">
-  <div class="signal" id="signal">تحميل التوصيات...</div>
-  <div class="price" id="entry">الدخول: -</div>
-  <div class="price" id="tp">جني الأرباح: -</div>
-  <div class="price" id="sl">وقف الخسارة: -</div>
+  <div class="signal" id="signal">اضغط "ابدأ" للحصول على التوصية</div>
+  <div class="price" id="entry"></div>
+  <div class="price" id="tp"></div>
+  <div class="price" id="sl"></div>
+  <button onclick="generateSignal()">ابدأ</button>
 </div>
 
 <!-- شارت مباشر -->
 <iframe src="https://s.tradingview.com/widgetembed/?symbol=OANDA:XAUUSD&interval=5&theme=dark&style=1&locale=ar" width="100%" height="500"></iframe>
 
 <script>
-// إعداد المؤشرات والاستراتيجية (RSI + EMA)
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-// مثال توضيحي للتوصيات اللحظية
+// دالة توليد التوصية عند الضغط على زر "ابدأ"
 function generateSignal() {
-    // هنا يمكن استبدالها ببيانات حقيقية من API
     const signals = ['شراء', 'بيع'];
-    const signal = signals[getRandomInt(0,1)];
+    const signal = signals[Math.floor(Math.random()*2)];
 
-    // سعر الدخول وهمي للتوضيح
+    // سعر الدخول عشوائي للتوضيح (يمكن استبداله ببيانات حقيقية لاحقاً)
     const entry = (1900 + Math.random()*20).toFixed(2);
 
-    // حساب TP = 5x SL
-    const sl = (entry - (signal === 'شراء' ? 1 : -1)*5).toFixed(2);
-    const tp = (entry + (signal === 'شراء' ? 1 : -1)*25).toFixed(2);
+    // حساب وقف الخسارة وTP (TP = 5x SL)
+    const sl = (signal === 'شراء' ? entry - 1 : parseFloat(entry) + 1).toFixed(2);
+    const tp = (signal === 'شراء' ? parseFloat(entry) + 5 : entry - 5).toFixed(2);
 
-    document.getElementById('signal').innerText = "التوصية: " + signal;
-    document.getElementById('entry').innerText = "الدخول: " + entry;
-    document.getElementById('tp').innerText = "جني الأرباح: " + tp;
-    document.getElementById('sl').innerText = "وقف الخسارة: " + sl;
+    // عرض التوصية بشكل كبير وواضح
+    document.getElementById('signal').innerText = "⚡ التوصية: " + signal + " ⚡";
+    document.getElementById('entry').innerText = "💰 سعر الدخول: " + entry;
+    document.getElementById('tp').innerText = "🏆 جني الأرباح (TP): " + tp;
+    document.getElementById('sl').innerText = "🛑 وقف الخسارة (SL): " + sl;
 }
-
-// تحديث كل 5 ثواني لتقريب "Live"
-setInterval(generateSignal, 5000);
-generateSignal();
 </script>
 
 </body>
