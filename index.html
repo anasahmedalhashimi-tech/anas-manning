@@ -1,11 +1,11 @@
 //@version=5
-strategy("ANAS ALKILIDAR SIGNALS | XAUUSD 1M", overlay=true, calc_on_every_tick=true, pyramiding=0, initial_capital=10000)
+strategy("ANAS ALKILIDAR SIGNALS | XAUUSD 1M Ultimate", overlay=true, calc_on_every_tick=true, pyramiding=0, initial_capital=10000)
 
-// ===== Inputs =====
+// ===== إعدادات وقف الخسارة وجني الأرباح =====
 slPoints = 1.5
 tpPoints = 2.5
 
-// ===== Indicators =====
+// ===== المؤشرات =====
 ema9   = ta.ema(close, 9)
 ema21  = ta.ema(close, 21)
 ema50  = ta.ema(close, 50)
@@ -13,7 +13,7 @@ rsiVal = ta.rsi(close, 14)
 [macdLine, signalLine, _] = ta.macd(close, 12, 26, 9)
 upperBB, middleBB, lowerBB = ta.bb(close, 20, 2)
 
-// ===== Entry Conditions =====
+// ===== شروط الدخول =====
 buyCond  = close > ema9 and ema9 > ema21 and ema21 > ema50 and rsiVal > 55 and macdLine > signalLine and close > middleBB
 sellCond = close < ema9 and ema9 < ema21 and ema21 < ema50 and rsiVal < 45 and macdLine < signalLine and close < middleBB
 
@@ -26,17 +26,35 @@ if sellCond and strategy.position_size == 0
     strategy.entry("SELL", strategy.short)
     strategy.exit("SELL TP/SL", "SELL", stop=close + slPoints, limit=close - tpPoints)
 
-// ===== Plot Levels =====
+// ===== رسم خطوط المستوى =====
+var line entryLine  = na
+var line slLine     = na
+var line tpLine     = na
+
+if strategy.position_size != 0
+    line.delete(entryLine)
+    line.delete(slLine)
+    line.delete(tpLine)
+    
+    entryLine := line.new(bar_index, strategy.position_avg_price, bar_index+10, strategy.position_avg_price, color=color.yellow, width=2)
+    
+    if strategy.position_size > 0
+        slLine := line.new(bar_index, strategy.position_avg_price - slPoints, bar_index+10, strategy.position_avg_price - slPoints, color=color.red, width=2)
+        tpLine := line.new(bar_index, strategy.position_avg_price + tpPoints, bar_index+10, strategy.position_avg_price + tpPoints, color=color.green, width=2)
+    else
+        slLine := line.new(bar_index, strategy.position_avg_price + slPoints, bar_index+10, strategy.position_avg_price + slPoints, color=color.red, width=2)
+        tpLine := line.new(bar_index, strategy.position_avg_price - tpPoints, bar_index+10, strategy.position_avg_price - tpPoints, color=color.green, width=2)
+
+// ===== Labels الأسعار =====
+if strategy.position_size != 0
+    label.new(bar_index, strategy.position_avg_price, "ENTRY: " + str.tostring(strategy.position_avg_price, format.mintick), color=color.yellow, textcolor=color.black, style=label.style_label_left)
+    label.new(bar_index, strategy.position_avg_price - slPoints, "SL: " + str.tostring(strategy.position_avg_price - slPoints, format.mintick), color=color.red, textcolor=color.white, style=label.style_label_left)
+    label.new(bar_index, strategy.position_avg_price + tpPoints, "TP: " + str.tostring(strategy.position_avg_price + tpPoints, format.mintick), color=color.green, textcolor=color.black, style=label.style_label_left)
+
+// ===== رسم المؤشرات =====
 plot(ema9, color=color.orange, title="EMA 9")
 plot(ema21, color=color.blue, title="EMA 21")
 plot(ema50, color=color.purple, title="EMA 50")
 plot(upperBB, color=color.gray, title="BB Upper")
 plot(middleBB, color=color.gray, title="BB Middle")
 plot(lowerBB, color=color.gray, title="BB Lower")
-
-// ===== Labels =====
-if buyCond
-    label.new(bar_index, close, "BUY\nSL:"+str.tostring(close-slPoints)+"\nTP:"+str.tostring(close+tpPoints), color=color.green, textcolor=color.black, style=label.style_label_down)
-
-if sellCond
-    label.new(bar_index, close, "SELL\nSL:"+str.tostring(close+slPoints)+"\nTP:"+str.tostring(close-tpPoints), color=color.red, textcolor=color.white, style=label.style_label_up)
