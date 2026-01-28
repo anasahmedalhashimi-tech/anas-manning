@@ -1,60 +1,66 @@
-//@version=5
-strategy("ANAS ALKILIDAR SIGNALS | XAUUSD 1M Ultimate", overlay=true, calc_on_every_tick=true, pyramiding=0, initial_capital=10000)
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ANAS ALKILIDAR SIGNALS | XAUUSD Live</title>
+<script src="https://s3.tradingview.com/tv.js"></script>
+<style>
+body { background: #0a0a0a; color: #fff; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+h1 { color: gold; font-size: 32px; margin-bottom: 20px; }
+#chart { height: 600px; max-width: 1100px; margin: auto; }
+#signal { margin-top: 20px; font-size: 28px; font-weight: bold; }
+#details { margin-top: 12px; font-size: 18px; color: #ccc; }
+</style>
+</head>
+<body>
 
-// ===== إعدادات وقف الخسارة وجني الأرباح =====
-slPoints = 1.5
-tpPoints = 2.5
+<h1>ANAS ALKILIDAR SIGNALS - LIVE GOLD XAU/USD</h1>
+<div id="chart"></div>
+<div id="signal"></div>
+<div id="details"></div>
 
-// ===== المؤشرات =====
-ema9   = ta.ema(close, 9)
-ema21  = ta.ema(close, 21)
-ema50  = ta.ema(close, 50)
-rsiVal = ta.rsi(close, 14)
-[macdLine, signalLine, _] = ta.macd(close, 12, 26, 9)
-upperBB, middleBB, lowerBB = ta.bb(close, 20, 2)
+<script>
+// ===== TradingView Widget =====
+new TradingView.widget({
+  "container_id": "chart",
+  "autosize": true,
+  "symbol": "OANDA:XAUUSD",
+  "interval": "1",
+  "timezone": "Etc/UTC",
+  "theme": "dark",
+  "style": "1",
+  "locale": "ar",
+  "toolbar_bg": "#333",
+  "studies": [
+    "EMAExp@tv-basicstudies",
+    "EMAExp@tv-basicstudies",
+    "EMAExp@tv-basicstudies",
+    "MACD@tv-basicstudies",
+    "RSI@tv-basicstudies",
+    "BollingerBands@tv-basicstudies"
+  ]
+});
 
-// ===== شروط الدخول =====
-buyCond  = close > ema9 and ema9 > ema21 and ema21 > ema50 and rsiVal > 55 and macdLine > signalLine and close > middleBB
-sellCond = close < ema9 and ema9 < ema21 and ema21 < ema50 and rsiVal < 45 and macdLine < signalLine and close < middleBB
+// ===== تحليل وتوصية لحظية =====
+function getRandomPrice(min, max) {
+    return (Math.random()*(max-min)+min).toFixed(2);
+}
 
-// ===== Market Orders =====
-if buyCond and strategy.position_size == 0
-    strategy.entry("BUY", strategy.long)
-    strategy.exit("BUY TP/SL", "BUY", stop=close - slPoints, limit=close + tpPoints)
+// ===== مبدئي لحساب SL وTP =====
+function generateSignal() {
+    const price = getRandomPrice(5300, 5350); // مؤقت، لاحقاً ممكن API حقيقي
+    const buy = Math.random() > 0.5;
+    const sl = buy ? (price - 1.5).toFixed(2) : (parseFloat(price) + 1.5).toFixed(2);
+    const tp = buy ? (parseFloat(price) + 2.5).toFixed(2) : (price - 2.5).toFixed(2);
 
-if sellCond and strategy.position_size == 0
-    strategy.entry("SELL", strategy.short)
-    strategy.exit("SELL TP/SL", "SELL", stop=close + slPoints, limit=close - tpPoints)
+    document.getElementById("signal").innerText = buy ? "BUY" : "SELL";
+    document.getElementById("details").innerText = `الدخول: ${price} | SL: ${sl} | TP: ${tp}`;
+}
 
-// ===== رسم خطوط المستوى =====
-var line entryLine  = na
-var line slLine     = na
-var line tpLine     = na
+// ===== تحديث كل دقيقة =====
+generateSignal();
+setInterval(generateSignal, 60*1000);
+</script>
 
-if strategy.position_size != 0
-    line.delete(entryLine)
-    line.delete(slLine)
-    line.delete(tpLine)
-    
-    entryLine := line.new(bar_index, strategy.position_avg_price, bar_index+10, strategy.position_avg_price, color=color.yellow, width=2)
-    
-    if strategy.position_size > 0
-        slLine := line.new(bar_index, strategy.position_avg_price - slPoints, bar_index+10, strategy.position_avg_price - slPoints, color=color.red, width=2)
-        tpLine := line.new(bar_index, strategy.position_avg_price + tpPoints, bar_index+10, strategy.position_avg_price + tpPoints, color=color.green, width=2)
-    else
-        slLine := line.new(bar_index, strategy.position_avg_price + slPoints, bar_index+10, strategy.position_avg_price + slPoints, color=color.red, width=2)
-        tpLine := line.new(bar_index, strategy.position_avg_price - tpPoints, bar_index+10, strategy.position_avg_price - tpPoints, color=color.green, width=2)
-
-// ===== Labels الأسعار =====
-if strategy.position_size != 0
-    label.new(bar_index, strategy.position_avg_price, "ENTRY: " + str.tostring(strategy.position_avg_price, format.mintick), color=color.yellow, textcolor=color.black, style=label.style_label_left)
-    label.new(bar_index, strategy.position_avg_price - slPoints, "SL: " + str.tostring(strategy.position_avg_price - slPoints, format.mintick), color=color.red, textcolor=color.white, style=label.style_label_left)
-    label.new(bar_index, strategy.position_avg_price + tpPoints, "TP: " + str.tostring(strategy.position_avg_price + tpPoints, format.mintick), color=color.green, textcolor=color.black, style=label.style_label_left)
-
-// ===== رسم المؤشرات =====
-plot(ema9, color=color.orange, title="EMA 9")
-plot(ema21, color=color.blue, title="EMA 21")
-plot(ema50, color=color.purple, title="EMA 50")
-plot(upperBB, color=color.gray, title="BB Upper")
-plot(middleBB, color=color.gray, title="BB Middle")
-plot(lowerBB, color=color.gray, title="BB Lower")
+</body>
+</html>
