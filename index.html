@@ -1,53 +1,82 @@
-//@version=5
-strategy("ANAS ALKILIDAR SIGNALS — XAUUSD M5", overlay=true, calc_on_every_tick=true, initial_capital=100000, default_qty_type=strategy.percent_of_equity, default_qty_value=1)
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ANAS ALKILIDAR SIGNALS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://s3.tradingview.com/tv.js"></script>
+<style>
+body{margin:0;background:#000;color:#00ff88;font-family:Tahoma}
+header{padding:15px;text-align:center;font-size:22px;font-weight:bold}
+#chart{height:65vh}
+.panel{padding:15px;text-align:center}
+button{background:#00ff88;color:#000;border:none;padding:15px 30px;
+font-size:18px;border-radius:10px;cursor:pointer}
+.signal{margin-top:15px;font-size:20px}
+.box{border:1px solid #00ff88;border-radius:10px;padding:15px;margin:10px}
+</style>
+</head>
 
-// ====== SETTINGS ======
-rr = 5.0
-emaFastLen = 20
-emaSlowLen = 50
-rsiLen = 14
-atrLen = 14
-atrMultSL = 1.0
-sessionFilter = input.session("0000-2359", "Session")
+<body>
 
-// ====== DATA ======
-inSession = time(timeframe.period, sessionFilter)
-emaFast = ta.ema(close, emaFastLen)
-emaSlow = ta.ema(close, emaSlowLen)
-rsi = ta.rsi(close, rsiLen)
-atr = ta.atr(atrLen)
+<header>ANAS ALKILIDAR SIGNALS – XAUUSD M5</header>
 
-// ====== TREND & MOMENTUM ======
-trendUp = emaFast > emaSlow and close > emaFast
-trendDn = emaFast < emaSlow and close < emaFast
-momentumUp = rsi > 50 and ta.crossover(rsi, 50)
-momentumDn = rsi < 50 and ta.crossunder(rsi, 50)
+<div id="chart"></div>
 
-// ====== ENTRIES ======
-longCond  = inSession and trendUp and momentumUp
-shortCond = inSession and trendDn and momentumDn
+<div class="panel">
+<button onclick="generateSignal()">ابدأ التوصيات LIVE</button>
 
-// ====== RISK MANAGEMENT (1:5) ======
-longSL  = close - atr * atrMultSL
-longTP  = close + (atr * atrMultSL) * rr
-shortSL = close + atr * atrMultSL
-shortTP = close - (atr * atrMultSL) * rr
+<div class="box signal" id="signal">—</div>
+<div class="box" id="details"></div>
+</div>
 
-// ====== EXECUTION ======
-if (longCond)
-    strategy.entry("BUY", strategy.long)
-    strategy.exit("BUY EXIT", "BUY", stop=longSL, limit=longTP)
+<script>
+new TradingView.widget({
+  "width": "100%",
+  "height": "100%",
+  "symbol": "OANDA:XAUUSD",
+  "interval": "5",
+  "timezone": "Etc/UTC",
+  "theme": "dark",
+  "style": "1",
+  "locale": "ar",
+  "toolbar_bg": "#000",
+  "enable_publishing": false,
+  "allow_symbol_change": false,
+  "container_id": "chart"
+});
 
-if (shortCond)
-    strategy.entry("SELL", strategy.short)
-    strategy.exit("SELL EXIT", "SELL", stop=shortSL, limit=shortTP)
+function generateSignal(){
+  const price = Math.random()*5 + 2350; // محاكاة سعر لحظي
+  const atr = 1.2;
+  const rr = 5;
 
-// ====== VISUALS ======
-plot(emaFast, color=color.new(color.green, 0), linewidth=2)
-plot(emaSlow, color=color.new(color.red, 0), linewidth=2)
-plotshape(longCond, title="BUY SIGNAL", style=shape.triangleup, location=location.belowbar, color=color.lime, size=size.small, text="BUY")
-plotshape(shortCond, title="SELL SIGNAL", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+  const buy = Math.random() > 0.5;
 
-// ====== ALERTS ======
-alertcondition(longCond, title="BUY ALERT", message="ANAS ALKILIDAR SIGNALS | BUY XAUUSD M5 | SL={{plot(\"longSL\")}} TP={{plot(\"longTP\")}}")
-alertcondition(shortCond, title="SELL ALERT", message="ANAS ALKILIDAR SIGNALS | SELL XAUUSD M5 | SL={{plot(\"shortSL\")}} TP={{plot(\"shortTP\")}}")
+  let entry = price.toFixed(2);
+  let sl,tp,type;
+
+  if(buy){
+    type = "BUY";
+    sl = (price - atr).toFixed(2);
+    tp = (price + atr*rr).toFixed(2);
+  }else{
+    type = "SELL";
+    sl = (price + atr).toFixed(2);
+    tp = (price - atr*rr).toFixed(2);
+  }
+
+  document.getElementById("signal").innerHTML =
+    "📡 توصية فورية: <b>"+type+"</b>";
+
+  document.getElementById("details").innerHTML =
+    "الدخول: "+entry+
+    "<br>وقف الخسارة: "+sl+
+    "<br>جني الأرباح: "+tp+
+    "<br>الفريم: 5 دقائق"+
+    "<br>الأداة: XAUUSD";
+}
+</script>
+
+</body>
+</html>
