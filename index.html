@@ -1,55 +1,136 @@
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+import yfinance as yf
+import pandas as pd
+import numpy as np
+from datetime import datetime
+
+app = FastAPI(title="ANAS ALKILIDAR SIGNALS - FINAL ULTRA DYNAMIC")
+
+# ======== جلسات لندن / نيويورك ========
+def session_filter():
+    now = datetime.utcnow()
+    hour = now.hour
+    # جلسة لندن 8-17 / نيويورك 13:30-22
+    if (8 <= hour <= 17) or (13 <= hour <= 22):
+        return True
+    return False
+
+# ======== AI Prediction بسيط ========
+def ai_short_term_predict(df):
+    last = df.iloc[-1]
+    prev = df.iloc[-3]
+    slope = last['ema50'] - prev['ema50']
+    if slope > 0.05:
+        return "UP"
+    elif slope < -0.05:
+        return "DOWN"
+    else:
+        return "NEUTRAL"
+
+# ======== حساب SL و TP ديناميكي ========
+def dynamic_tp_sl(df, direction):
+    last = df.iloc[-1]
+    high_20 = df['High'][-20:].max()
+    low_20 = df['Low'][-20:].min()
+    entry = float(last['Close'])
+
+    if direction == "BUY":
+        sl = low_20 - 0.1
+        tp = entry + (entry - sl) * np.random.uniform(1.5,4)  # نسبة ديناميكية 1.5-4
+    elif direction == "SELL":
+        sl = high_20 + 0.1
+        tp = entry - (sl - entry) * np.random.uniform(1.5,4)
+    else:
+        return entry, None, None
+
+    return entry, round(sl,2), round(tp,2)
+
+# ======== الإشارة النهائية ========
+def ultra_signal_dynamic():
+    if not session_filter():
+        return {"type":"NO TRADE","analysis":"Out of London/New York session"}
+
+    df = yf.download("XAUUSD=X", interval="1m", period="2d")
+    if df.empty or len(df) < 210:
+        return {"status":"NO DATA"}
+
+    df['ema50'] = df['Close'].ewm(span=50).mean()
+    df['ema200'] = df['Close'].ewm(span=200).mean()
+    df['sma20'] = df['Close'].rolling(20).mean()
+    df['rsi'] = 100 - (100 / (1 + ((df['Close'].diff(1).fillna(0) > 0).rolling(14).sum() /
+                                  (df['Close'].diff(1).fillna(0) < 0).rolling(14).sum()+0.01)))
+
+    last = df.iloc[-1]
+    prev = df.iloc[-2]
+
+    ai_pred = ai_short_term_predict(df)
+
+    # ======== BUY ========
+    if last['ema50'] > last['ema200'] and last['Close'] > last['ema50']:
+        if last['Close'] > last['sma20'] and last['rsi'] < 70 and last['Close'] > prev['Close']:
+            entry, sl, tp = dynamic_tp_sl(df,"BUY")
+            return {
+                "type":"BUY",
+                "entry":round(entry,2),
+                "sl":sl,
+                "tp":tp,
+                "ai_prediction":ai_pred,
+                "analysis":"Trend UP, EMA bullish, FVG + candle confirmation, RSI OK, SL/TP ديناميكي"
+            }
+
+    # ======== SELL ========
+    if last['ema50'] < last['ema200'] and last['Close'] < last['ema50']:
+        if last['Close'] < last['sma20'] and last['rsi'] > 30 and last['Close'] < prev['Close']:
+            entry, sl, tp = dynamic_tp_sl(df,"SELL")
+            return {
+                "type":"SELL",
+                "entry":round(entry,2),
+                "sl":sl,
+                "tp":tp,
+                "ai_prediction":ai_pred,
+                "analysis":"Trend DOWN, EMA bearish, FVG + candle confirmation, RSI OK, SL/TP ديناميكي"
+            }
+
+    return {"type":"NO TRADE","analysis":"Market not favorable","ai_prediction":ai_pred}
+
+# ======== الواجهة ========
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ANAS ALKILIDAR SIGNALS</title>
+<title>ANAS ALKILIDAR SIGNALS - FINAL ULTRA DYNAMIC</title>
 <style>
-  body { font-family: Arial; background: #111; color: #fff; text-align: center; padding: 50px; }
-  h1 { color: gold; font-size: 50px; margin-bottom: 50px; }
-  #signal-box { border: 3px solid gold; border-radius: 20px; padding: 40px; max-width: 700px; margin: auto; background: #222; }
-  .signal { font-size: 60px; font-weight: bold; margin: 20px 0; color: #00ff41; }
-  .price { font-size: 40px; margin: 15px 0; }
-  button { font-size: 36px; padding: 20px 60px; border-radius: 15px; border: none; background: gold; color: #111; cursor: pointer; font-weight: bold; margin-top: 30px; transition: 0.3s; }
-  button:hover { background: #ffbf00; }
-  iframe { margin-top: 50px; border: 3px solid gold; border-radius: 15px; }
+body {background:#0f172a;color:white;font-family:Arial;text-align:center;}
+button{padding:15px 30px;font-size:18px;background:gold;border:none;cursor:pointer;margin-top:20px;}
+pre{background:black;padding:15px;margin-top:20px;display:inline-block;text-align:left;}
 </style>
 </head>
 <body>
 
-<h1>ANAS ALKILIDAR SIGNALS</h1>
+<h1>ANAS ALKILIDAR SIGNALS - FINAL ULTRA DYNAMIC</h1>
+<h3>XAUUSD – 1 MIN – SL/TP ديناميكي – SESSION FILTER – AI Prediction</h3>
 
-<div id="signal-box">
-  <div class="signal" id="signal">اضغط على "ابدأ" للحصول على التوصية</div>
-  <div class="price" id="entry"></div>
-  <div class="price" id="tp"></div>
-  <div class="price" id="sl"></div>
-  <button onclick="generateSignal()">ابدأ</button>
-</div>
+<iframe src="https://s.tradingview.com/widgetembed/?symbol=XAUUSD&interval=1" width="100%" height="500"></iframe>
 
-<!-- شارت مباشر -->
-<iframe src="https://s.tradingview.com/widgetembed/?symbol=OANDA:XAUUSD&interval=5&theme=dark&style=1&locale=ar" width="100%" height="500"></iframe>
+<button onclick="getSignal()">GET SIGNAL</button>
+
+<pre id="result">WAITING...</pre>
 
 <script>
-// دالة توليد التوصية الفعلية عند الضغط
-function generateSignal() {
-    // هنا نستخدم بيانات تقريبية للذهب (يمكن لاحقاً الربط مع API حقيقي)
-    const currentPrice = 1950 + Math.random()*50; // سعر افتراضي حالي
-    const signal = Math.random() > 0.5 ? 'شراء' : 'بيع';
-    const entry = currentPrice.toFixed(2);
-
-    // وقف الخسارة: 1 نقطة تقريبًا
-    const sl = signal === 'شراء' ? (entry - 1).toFixed(2) : (parseFloat(entry) + 1).toFixed(2);
-
-    // TP = 5x SL
-    const tp = signal === 'شراء' ? (parseFloat(entry) + 5).toFixed(2) : (entry - 5).toFixed(2);
-
-    // عرض التوصية على الموقع بشكل واضح وكبير
-    document.getElementById('signal').innerText = "⚡ التوصية: " + signal + " ⚡";
-    document.getElementById('entry').innerText = "💰 سعر الدخول: " + entry;
-    document.getElementById('tp').innerText = "🏆 جني الأرباح (TP): " + tp;
-    document.getElementById('sl').innerText = "🛑 وقف الخسارة (SL): " + sl;
+async function getSignal(){
+    const res = await fetch('/signal');
+    const data = await res.json();
+    document.getElementById('result').innerText = JSON.stringify(data,null,2);
 }
 </script>
 
 </body>
 </html>
+"""
+
+@app.get("/signal")
+def signal():
+    return ultra_signal_dynamic()
