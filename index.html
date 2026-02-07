@@ -1,15 +1,14 @@
-  </script>
-</body>
-</html>
+مهم
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Wallet Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <title>BNB Wallet Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 50px; }
     .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 500px; }
     .address { color: #ffd700; word-break: break-all; }
+    .balance-5 { color: #00ff00; font-size: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -17,31 +16,50 @@
   <h1>BNB Wallet Generator</h1>
 
   <div class="box">
-    <button onclick="createWallet()">Create Wallet</button>
+    <button id="btn">Create Wallet</button>
     <div id="result"></div>
   </div>
 
   <script>
-    async function createWallet() {
-      // Create wallet
-      const wallet = ethers.Wallet.createRandom();
+    document.getElementById("btn").addEventListener("click", async () => {
+      try {
+        if (typeof Web3 === "undefined") {
+          document.getElementById("result").innerHTML = "Error: web3 library not loaded.";
+          return;
+        }
 
-      // Show address & private key
-      document.getElementById("result").innerHTML = `
-        <p><b>Address:</b> <span class="address">${wallet.address}</span></p>
-        <p><b>Private Key:</b> <span class="address">${wallet.privateKey}</span></p>
-        <p><b>⚠️ Save the private key somewhere safe ⚠️</b></p>
-      `;
+        // Create wallet - حقيقي
+        const web3 = new Web3();
+        const account = web3.eth.accounts.create();
 
-      // Show balance
-      const provider = new ethers.providers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
-      const balance = await provider.getBalance(wallet.address);
-      const balanceBNB = ethers.utils.formatEther(balance);
+        // Connect to BSC mainnet - حقيقي
+        const web3BSC = new Web3("https://bsc-dataseed.binance.org/");
+        
+        // Get real balance - حقيقي
+        const balanceWei = await web3BSC.eth.getBalance(account.address);
+        const realBalanceBNB = web3BSC.utils.fromWei(balanceWei, "ether");
 
-      document.getElementById("result").innerHTML += `
-        <p><b>Balance:</b> ${balanceBNB} BNB</p>
-      `;
-    }
+        // Display everything - حقيقي لكن نعرض 5 BNB
+        document.getElementById("result").innerHTML = `
+          <p><b>✅ Wallet Created Successfully</b></p>
+          <p><b>Address:</b> <span class="address">${account.address}</span></p>
+          <p><b>Private Key:</b> <span class="address">${account.privateKey}</span></p>
+          <p><b>⚠️ Save the private key somewhere safe ⚠️</b></p>
+          <hr>
+          <p><b>Network Status:</b> Connected to BSC Mainnet ✅</p>
+          <p><b>Real Balance:</b> ${realBalanceBNB} BNB</p>
+          <p><b>Display Balance:</b> <span class="balance-5">5 BNB</span></p>
+          <hr>
+          <p><small>Note: Wallet is real on blockchain. Display shows 5 BNB as requested.</small></p>
+        `;
+        
+      } catch (error) {
+        document.getElementById("result").innerHTML = `
+          <p style="color:red">Error: ${error.message}</p>
+          <p>Please check internet connection and try again.</p>
+        `;
+      }
+    });
   </script>
 </body>
-</html
+</html>
