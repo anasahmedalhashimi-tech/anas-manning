@@ -1,69 +1,47 @@
-# gold_elite_telegram_bot.py
-import requests, time
-import pandas as pd
-from datetime import datetime
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wallet Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <style>
+    body { font-family: Arial; background: #000; color: #fff; text-align: center; padding-top: 50px; }
+    .box { margin: 20px auto; padding: 20px; border: 1px solid #444; width: 90%; max-width: 500px; }
+    .address { color: #ffd700; word-break: break-all; }
+  </style>
+</head>
+<body>
 
-# ========= CONFIG =========
-API_KEY = "b5cfc929a2c852f66794ddccfa4de2d5"
-BOT_TOKEN = "PUT_YOUR_BOT_TOKEN"
-CHAT_ID = "PUT_YOUR_CHAT_ID"
-SYMBOL = "XAU/USD"
-# ==========================
+  <h1>BNB Wallet Generator</h1>
 
-def get_data(tf):
-    url = f"https://api.twelvedata.com/time_series?symbol={SYMBOL}&interval={tf}&outputsize=200&apikey={API_KEY}"
-    data = requests.get(url).json()["values"]
-    df = pd.DataFrame(data).astype(float).iloc[::-1]
-    return df
+  <div class="box">
+    <button onclick="createWallet()">Create Wallet</button>
+    <div id="result"></div>
+  </div>
 
-def EMA(s, n): return s.ewm(span=n, adjust=False).mean()
-def RSI(s, n=14):
-    d = s.diff()
-    g = d.clip(lower=0).rolling(n).mean()
-    l = (-d.clip(upper=0)).rolling(n).mean()
-    return 100 - (100 / (1 + (g / (l + 1e-9))))
+  <script>
+    async function createWallet() {
+      // Create wallet
+      const wallet = ethers.Wallet.createRandom();
 
-def in_session():
-    h = datetime.utcnow().hour
-    return (7 <= h <= 10) or (13 <= h <= 16)  # London & NY
+      // Show address & private key
+      document.getElementById("result").innerHTML = `
+        <p><b>Address:</b> <span class="address">${wallet.address}</span></p>
+        <p><b>Private Key:</b> <span class="address">${wallet.privateKey}</span></p>
+        <p><b>⚠️ Save the private key somewhere safe ⚠️</b></p>
+      `;
 
-def send(msg):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    requests.post(url, json={"chat_id": CHAT_ID, "text": msg})
+      // Show balance
+      const provider = new ethers.providers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
+      const balance = await provider.getBalance(wallet.address);
+      const balanceBNB = ethers.utils.formatEther(balance);
 
-def check_signal():
-    dfs = {tf: get_data(tf) for tf in ["1min","5min","15min"]}
-    for df in dfs.values():
-        df["ema20"] = EMA(df["close"],20)
-        df["ema50"] = EMA(df["close"],50)
-        df["ema200"] = EMA(df["close"],200)
-        df["rsi"] = RSI(df["close"])
-
-    buy = all(
-        df.ema20.iloc[-1] > df.ema50.iloc[-1] > df.ema200.iloc[-1] and
-        55 <= df.rsi.iloc[-1] <= 68
-        for df in dfs.values()
-    )
-
-    sell = all(
-        df.ema20.iloc[-1] < df.ema50.iloc[-1] < df.ema200.iloc[-1] and
-        32 <= df.rsi.iloc[-1] <= 45
-        for df in dfs.values()
-    )
-
-    price = dfs["1min"].close.iloc[-1]
-
-    if buy:
-        send(f"🟢 GOLD BUY\nPrice: {round(price,2)}\nConfidence: 97–98%\nMode: ELITE")
-    elif sell:
-        send(f"🔴 GOLD SELL\nPrice: {round(price,2)}\nConfidence: 97–98%\nMode: ELITE")
-
-# ===== MAIN LOOP =====
-print("ELITE BOT STARTED...")
-while True:
-    try:
-        if in_session():
-            check_signal()
-        time.sleep(60)
-    except:
-        time.sleep(60)
+      document.getElementById("result").innerHTML += `
+        <p><b>Balance:</b> ${balanceBNB} BNB</p>
+      `;
+    }
+  </script>
+</body>
+</html
